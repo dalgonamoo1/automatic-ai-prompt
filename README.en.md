@@ -6,7 +6,7 @@
 
 Connect it to the AI you already use through MCP. Your AI identifies the goal and constraints, creates an **internal task prompt**, and follows it to complete the task. It asks questions only when essential information is missing.
 
-[How it works](#how-it-works) · [Examples](#examples) · [Installation](#installation) · [Commands](#commands) · [Advanced guide](docs/advanced.en.md)
+[How it works](#how-it-works) · [Examples](#examples) · [Connect ChatGPT](#use-in-chatgpt) · [Installation](#installation) · [Commands](#commands) · [Advanced guide](docs/advanced.en.md)
 
 ## How it works
 
@@ -77,7 +77,20 @@ The AI analyzes the attachments and produces evidence-linked priorities and a pr
 
 If you want the prompt itself, explicitly ask for **“a prompt only.”**
 
+## Use in ChatGPT
+
+For ordinary ChatGPT chats, connect through a **remote MCP plugin**, separately from the local Codex installation. This repository includes a ChatGPT server. No additional model API key or npm publication is needed.
+
+1. Deploy the ChatGPT server once using the [deployment guide](docs/advanced.en.md#deploy-the-chatgpt-worker). A Sites deployment creates a plugin for the deploying account.
+2. In ChatGPT, open **Plugins → Personal → Created by you**, find **Automatic AI Prompt**, and complete **Install / Connect**. For a connection deployed by someone else, install the plugin they share with you.
+3. Select the plugin in a new chat and make an ordinary request such as "Make a one-week English study plan". You do not need to name the tool every time.
+4. Check tool activity for a **`refine_prompt`** call. A listed plugin or a completed answer alone does not prove a call succeeded.
+
+The plugin instructs ChatGPT to use the tool automatically for tasks, but the server cannot force tool selection. Menus and availability depend on the app version, account, and administrator settings. Private deployments are account-specific; making the GitHub repository public does not share a plugin.
+
 ## Installation
+
+The commands below install into local clients such as Codex and Claude Code. Use the plugin connection above for ordinary ChatGPT chats. Shared MCP configuration in desktop work modes on the same local host is separate from a remote connection for ordinary chats.
 
 ### 1. Check the prerequisites
 

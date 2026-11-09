@@ -168,6 +168,35 @@ If you manage MCP configuration yourself, this configuration runs the server wit
 
 The first run requires Git and network access. Append `#COMMIT_SHA` to the Git URL to pin a tested version.
 
+## Deploy the ChatGPT Worker
+
+`src/chatgpt-worker.js` exposes remote MCP tools for a ChatGPT plugin. It shares the local server's request schema, automatic-use instructions, and brief-generation function. It makes no model API calls and stores no conversations. It supports MCP `2026-07-28` discovery, tool listing, and calls, plus initialization for existing clients. The local prompt and resource interfaces remain available through the stdio / Express server.
+
+Build for development:
+
+```bash
+npm ci --ignore-scripts
+npm test
+npm run build:chatgpt
+```
+
+The output is a single Web Fetch API ES module at `dist/server/index.js`. Use `GET /health` for health checks and `POST /mcp` as the connection endpoint. `GET /` provides Korean and English connection instructions.
+
+For Sites, create a private Site and add this `.openai/hosting.json` in its **deployment checkout**. Use the exact Site ID returned for your own deployment rather than copying another account's ID:
+
+```json
+{
+  "project_id": "your exact Site ID from Sites",
+  "capabilities": ["mcp"]
+}
+```
+
+Build again to produce `dist/.openai/hosting.json`. Push the matching source to the Site's source repository and deploy the build output. When the owner publishes with the MCP capability, Sites creates the connected plugin. In ChatGPT, open **Plugins → Personal → Created by you → Automatic AI Prompt → Install / Connect**, then select it in a new chat. The deployed Site's `/` page also explains the connection steps.
+
+Sites checks sign-in and Site access before forwarding requests. For other hosting platforms, configure HTTPS and access control there, then register a custom MCP server in ChatGPT. This Worker does not implement its own OAuth or account authentication, and the Express server's `MCP_AUTH_TOKEN` setting does not apply to it.
+
+A private Site and its plugin belong to the deploying account. Sharing with other users requires the appropriate Site and plugin access settings. A public GitHub repository does not grant access to another account's private deployment. See the official [ChatGPT MCP guide](https://learn.chatgpt.com/docs/extend/mcp).
+
 ## Connect apps that require a server URL
 
 The server supports **Streamable HTTP** as well as local `stdio`. Deploy it to an HTTPS server reachable by your AI app, then register `https://YOUR_HOST/mcp`. The app must support remote MCP or custom apps; availability depends on the account, plan, and administrator settings. An AI app running on another server cannot directly reach your computer's `localhost`.

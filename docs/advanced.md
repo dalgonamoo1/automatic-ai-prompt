@@ -168,6 +168,35 @@ AI는 이미 제공된 일정과 사유를 반영해 내부 지침을 구체화�
 
 최초 실행에는 Git과 네트워크가 필요합니다. 검증된 버전을 고정하려면 Git URL 끝에 `#커밋SHA`를 붙이세요.
 
+## ChatGPT용 Worker 배포
+
+`src/chatgpt-worker.js`는 ChatGPT 플러그인용 원격 MCP 서버입니다. 기존 로컬 서버와 같은 요청 스키마·자동 사용 지침·작업 자료 생성 함수를 사용합니다. 모델 API 호출이나 대화 저장은 없습니다. MCP `2026-07-28`의 `server/discover`, `tools/list`, `tools/call`과 기존 클라이언트용 초기화를 지원합니다. 로컬 서버의 프롬프트·리소스 인터페이스는 기존 `stdio` / Express 서버에서 사용하세요.
+
+개발용 빌드:
+
+```bash
+npm ci --ignore-scripts
+npm test
+npm run build:chatgpt
+```
+
+결과는 Web Fetch API를 사용하는 단일 ES 모듈 `dist/server/index.js`입니다. `GET /health`로 상태를 확인하고 `POST /mcp`를 연결 주소로 사용합니다. `GET /`에는 한국어·영어 연결 안내가 있습니다.
+
+Sites에서는 새 비공개 Site를 만들고 **해당 배포용 체크아웃**에 다음 `.openai/hosting.json`을 작성합니다. `project_id`는 Sites가 반환한 실제 ID를 그대로 사용하며, 다른 사람의 ID를 복사하지 마세요.
+
+```json
+{
+  "project_id": "Sites가 반환한 본인 Site ID",
+  "capabilities": ["mcp"]
+}
+```
+
+다시 빌드하면 배포용 `dist/.openai/hosting.json`도 생성됩니다. 정확히 같은 소스를 해당 Site의 소스 저장소에 푸시하고 빌드 결과를 배포하세요. 소유자가 MCP 기능을 포함해 배포하면 Sites가 플러그인을 생성합니다. ChatGPT의 **Plugins → Personal → Created by you → Automatic AI Prompt → Install / Connect**에서 연결한 뒤 새 채팅에서 선택합니다. 연결 화면은 배포한 Site의 `/`에서도 확인할 수 있습니다.
+
+Sites가 로그인과 Site 접근 권한을 검사합니다. 이 Worker를 다른 호스팅에 올릴 때는 그 플랫폼에서 HTTPS와 접근 제어를 설정하고 ChatGPT에 사용자 지정 MCP 서버로 등록하세요. 이 Worker가 독자적인 OAuth나 계정 인증을 제공하는 것은 아닙니다. 기존 Express 서버의 `MCP_AUTH_TOKEN` 설정이 Worker에 적용되지는 않습니다.
+
+비공개 Site와 플러그인은 배포 계정용입니다. 다른 사람에게 배포할 때는 Site와 플러그인의 실제 공유 권한을 설정해야 합니다. GitHub 공개만으로 다른 계정의 접근이 허용되지는 않습니다. 공식 연결 방법은 [ChatGPT MCP 안내](https://learn.chatgpt.com/docs/extend/mcp)에서 확인하세요.
+
 ## URL을 요구하는 앱에 연결
 
 로컬 `stdio` 대신 **Streamable HTTP**도 지원합니다. 원격 앱이 접근할 수 있는 HTTPS 서버에 배포한 뒤 `https://서버주소/mcp`를 등록하세요. ChatGPT 등 해당 앱에서 원격 MCP·사용자 지정 앱 추가 기능을 제공해야 하며 계정·요금제·관리자 설정에 따라 이용 가능 여부가 다릅니다. `localhost` 주소는 다른 서버에서 실행되는 AI 앱이 직접 접근할 수 없습니다.
