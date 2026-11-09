@@ -1,6 +1,6 @@
 {
   "name": "automatic-ai-prompt",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "Understand rough requests, formulate an internal prompt, and complete the task with the AI you already use. No extra API key.",
   "type": "module",
   "bin": {

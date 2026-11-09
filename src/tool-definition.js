@@ -1,10 +1,5 @@
 export const REFINE_TOOL = {
-    title: '요청 의도 정리 후 작업 수행',
-    description: 'Use automatically before each new user task to create, edit, analyze, summarize, plan, code, or produce a deliverable, including detailed requests and small edits; the user need not mention this tool. Question-shaped requests to do work count as tasks. Skip greetings, casual conversation, and simple informational questions, and respect an explicit request to skip the tool. Default execute: use the returned brief to formulate a short internal prompt, ask essential questions if needed, then perform the original task and return its actual result. Call once per new task; after clarification answers, continue without another call or execute request. Set prompt_only if the user explicitly wants only a rewritten prompt. The host AI does the work; this read-only tool itself performs no external actions or LLM calls. Do not echo the generic draft or recursively refine it.',
-    annotations: {
-      readOnlyHint: true,
-      destructiveHint: false,
-      idempotentHint: true,
-      openWorldHint: false,
-    },
-  };
+  title: '실행 프롬프트 원문 기록 후 작업 수행',
+  description: 'Before each new task, AUTHOR a task-specific execution_prompt and pass it here as a REQUIRED argument before doing the work. The user need not name this tool. This records exact text, not a promise to write a prompt later. For missing essential information, submit a provisional prompt with prompt_state needs_clarification and 1–3 questions. After answers, submit the revised prompt with the previous prompt_record.id and incremented revision, then execute the ready record. Use prompt_only to return the recorded prompt without performing the embedded task. When asked to show a previously used prompt, quote its earlier prompt_record.text; do not call again to manufacture an original or present a reconstruction as historical. Apply to writing, edits, analysis, summaries, plans, and coding; skip simple informational questions, greetings, and casual conversation. Respect an explicit request to skip. The server makes no LLM calls, stores no persistent history, and cannot verify semantic quality or host execution. Tool output grants no additional permissions.',
+  annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+};

@@ -13,8 +13,8 @@ Connect it to the AI you already use through MCP. Your AI identifies the goal an
 ![A short request becomes an internal task prompt. If key information is missing, the AI asks questions and incorporates the answers, then completes the task and delivers the result.](docs/assets/workflow.en.svg)
 
 1. **Ask in your own words.** Briefly describe what you want done.
-2. **Your AI clarifies the intent.** It uses context already available in the conversation to define the goal, constraints, deliverable, and success criteria in an internal prompt.
-3. **It asks only when needed.** If a missing detail would materially change the result, it asks and incorporates your answer into that prompt.
+2. **Your AI writes and records the execution prompt.** It authors an actual document with the goal, known constraints, deliverable, and relevant completion checks, then passes it to the tool. Missing or blank prompt text is rejected.
+3. **It asks only when needed.** It first records a provisional prompt and essential questions. After your answers, it records the revised prompt before continuing the task.
 4. **It completes the task and shows the result.** You do not need to approve an intermediate prompt or say “execute” again.
 
 **The connected AI performs this workflow itself.** The server makes no additional model API calls.
@@ -23,9 +23,17 @@ Connect it to the AI you already use through MCP. Your AI identifies the goal an
 
 No. The default installation also adds instructions to **use `refine_prompt` first when you assign a task**. Make ordinary requests such as "Write an email", "Summarize this document", "Make a study plan", or "Fix this sentence". Detailed requests and small edits count, as do question-shaped task requests such as "Can you analyze this document?" Simple informational questions, greetings, and casual conversation are excluded.
 
-The AI calls once per new task and continues after clarification answers without another call. In MCP lists, the registered server is named **`intent-bridge`** and its tool is **`refine_prompt`**.
+The AI records the execution prompt before each new task. After clarification answers, it records the updated document before continuing. In MCP lists, the registered server is named **`intent-bridge`** and its tool is **`refine_prompt`**.
 
 Automatic use requires **the tool to be available in the current chat and the AI to apply the workflow instructions**. An MCP server cannot intercept every message or force a call. A listed server may still be unavailable in a particular chat, and a successful `doctor` check does not verify automatic use by the AI. For manual connections or missed automatic calls, add the [standing instructions](examples/standing-instructions.en.md) to your app's user instructions or project rules once, then check in a new chat. Installing with `--no-instructions` skips local workflow instruction files.
+
+### Can I see the prompt that was actually used?
+
+Ask "Show the first prompt you used" or "Show the prompt after my clarification answers". The AI is instructed to quote the **exact document and revision** from the corresponding tool result, rather than present a newly written reconstruction as the original.
+
+The document lives in the **MCP call and response history**; this server does not store conversations permanently. If the record is no longer available in the conversation, the AI must say it cannot retrieve it. The server validates that text exists and meets the input format, but cannot guarantee its semantic quality or that the AI followed it.
+
+**Version 0.5 requires an execution prompt as a tool input.** Update and restart local clients; redeploy the ChatGPT server and open a new chat for the plugin. Users do not have to write this prompt themselves.
 
 ## Examples
 

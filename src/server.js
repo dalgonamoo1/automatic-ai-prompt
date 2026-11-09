@@ -1,11 +1,11 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { REFINE_TOOL } from './tool-definition.js';
-import { buildBrief, refineShape, HOST_INSTRUCTIONS, REWRITE_GUIDANCE } from './prompt.js';
+import { buildBrief, buildPromptRequest, refineShape, HOST_INSTRUCTIONS, REWRITE_GUIDANCE } from './prompt.js';
 
 export function createServer() {
   const server = new McpServer(
-    { name: 'intent-bridge', version: '0.4.2' },
+    { name: 'intent-bridge', version: '0.5.0' },
     { instructions: HOST_INSTRUCTIONS },
   );
 
@@ -28,7 +28,7 @@ export function createServer() {
     },
   }, (input) => ({
     description: input.mode === 'prompt_only' ? 'Write an intent-preserving prompt without performing its task.' : 'Understand intent, prepare an internal prompt, and carry out the original request.',
-    messages: [{ role: 'user', content: { type: 'text', text: JSON.stringify(buildBrief(input), null, 2) } }],
+    messages: [{ role: 'user', content: { type: 'text', text: JSON.stringify(buildPromptRequest(input), null, 2) } }],
   }));
 
   server.registerResource('prompt-editing-guide', 'intent-bridge://guide', {

@@ -126,7 +126,7 @@ The generated configuration includes the actual installation path and Node execu
 
 After adding the instructions, make an ordinary request:
 
-The default scope covers tasks that create, edit, analyze, summarize, plan, code, or produce another deliverable, including detailed requests and small edits. Question-shaped requests such as "Can you analyze this?" count as tasks when they ask for work. Greetings, casual conversation, and simple informational questions are excluded. Call once per new task, without another call for clarification answers in the same task. The instructions require the AI to disclose unavailable or failed calls instead of claiming it used the tool.
+The default scope covers tasks that create, edit, analyze, summarize, plan, code, or produce another deliverable, including detailed requests and small edits. Question-shaped requests such as "Can you analyze this?" count as tasks when they ask for work. Greetings, casual conversation, and simple informational questions are excluded. Record an actual execution prompt before the task, then record an updated revision after clarification answers. The instructions require the AI to disclose unavailable or failed calls instead of claiming it used the tool.
 
 > Write an email to my manager saying the deadline has moved from Friday to Monday. We need more time for review, and I do not want it to sound like an excuse.
 
@@ -143,7 +143,7 @@ Each app needs its own initial connection. One app's MCP settings do not automat
 1. Run `update` for an existing installation, fully restart the AI app, and open a new chat. An installation made with `--no-instructions` keeps that choice during updates. To add local workflow instructions, run `setup` and select that AI again.
 2. Check that the current chat can use `refine_prompt` from the `intent-bridge` server. A registered MCP entry does not prove that a particular chat can call it.
 3. Without naming the tool, ask "Make a one-week English study plan with 30 minutes per day". Check the app's tool activity for a `refine_prompt` call; a completed plan alone does not prove a call occurred.
-4. If the AI asks an essential question, answer it and confirm that it continues without another call or an extra execute request. Simple informational questions such as "What is photosynthesis?" are excluded from automatic calls.
+4. Answer an essential question and confirm that a revised prompt links to the prior record before the task continues, without another execute request. Ask to see the first prompt and compare it with the original tool result. Simple informational questions such as "What is photosynthesis?" are excluded from automatic calls.
 
 `doctor` checks server connectivity rather than the AI's tool selection. If automatic calls are missing, check whether the workflow instructions are applied and the tool is available in that chat. Instructions cannot activate a tool that the app does not expose.
 
@@ -238,24 +238,28 @@ Store `MCP_AUTH_TOKEN` as a secret environment variable in your hosting service,
   "request": "Help me prepare a competitor analysis",
   "context": "Our service is a secondhand marketplace for university students in Korea",
   "constraints": ["Do not invent unverified figures"],
-  "desired_output": "A comparison and key implications",
+  "execution_prompt": "Research competitors for a secondhand marketplace serving university students in Korea. Compare service features, revenue models, and student use cases, then summarize the strategic implications. Cite verified primary sources, mark missing figures as unverified, and distinguish competitor-selection and strategy suggestions from facts.",
+  "prompt_state": "ready",
   "language": "auto",
-  "mode": "execute",
-  "clarification": "minimal"
+  "mode": "execute"
 }
 ```
 
-Only `request` is required. Supply context, constraints, and the output format only when known. The default language is `auto`. The default clarification mode is `minimal`; use `ask_first` when you want essential questions first.
+**Version 0.5 requires both `request` and `execution_prompt`.** The host AI must author the actual task instructions first. Missing or blank text returns an error; the server never substitutes a generic draft. Users do not need to write the document themselves. Version 0.4 callers must adopt the new schema; refresh the app/plugin schema and open a new chat.
 
-The default `mode` is `execute`: the host AI creates an internal prompt, carries out the original task, and shows the result. If the user wants only a prompt, the host should select `prompt_only` and return the prompt without executing its embedded task. An explicit prompt-only request takes precedence over the default mode.
+Include the objective, known constraints, deliverable, and relevant completion checks, scaled to the task. Limits are 12,000 characters for the request, 24,000 for the execution prompt, 16,000 for context, 20 constraints of 2,000 characters each, and 4,000 for the output description. Prompt text is returned without trimming or rewriting.
 
-Input limits: request 12,000 characters; context 16,000; up to 20 constraints of 2,000 characters each; output description 4,000. Oversized input returns an error rather than being silently truncated.
+For missing essential information, submit `prompt_state: "needs_clarification"` and 1–3 `questions`. The response has `clarification_required` and `ready_for_host_execution: false`, instructing the host not to execute the provisional document as final. After answers, submit the updated prompt with the returned `prompt_record.id` as `previous_prompt_id`, an incremented `revision`, and `prompt_state: "ready"`. Ready records cannot include questions. The first record uses revision 1 with no prior ID; later revisions require revision 2 or higher and a prior ID.
 
-The returned `source`, `draft_prompt`, `rewrite_guidance`, and `workflow` are **working material for the host AI**. The default `status: "host_execution_required"` means that the host must formulate the internal prompt and complete the task. `prompt_only` returns `host_rewrite_required`. The host also decides whether clarification is necessary. It updates the conversation context and resumes work after the user's answers; the server does not store conversation state.
+`prompt_record` contains the exact submitted `text`, its `id`, `revision`, optional `previous_prompt_id`, `state`, and `recorded_at`. Initial and updated documents remain in their individual MCP results. `source` contains the original task data, while `workflow` and `next_step` guide the host. The old generic `draft_prompt` field has been removed.
+
+A ready execute record has `host_execution_required` and asks the host to return the actual task result. A ready prompt_only record has `prompt_ready` and asks the host to return `prompt_record.text` verbatim without performing its embedded task. Asking to see the first prompt is a lookup in earlier results, not a new recording call. If the record is unavailable, the AI must say it cannot retrieve it and never present a reconstruction as historical text.
+
+**Verification limits:** The server checks required text, states, and metadata format. It cannot validate semantic quality, authenticity of previous IDs, consecutive revision numbers, or actual host execution. It has no persistent history or lookup API. Retention of MCP call records depends on the host app.
 
 ### Prompt: `refine`
 
-Clients that support MCP Prompts can pass `request` and optional `context`, `language`, and `mode`. The default is to clarify intent and execute the task. Only `mode: "prompt_only"` returns just a prompt. If the client has no Prompts UI, use the `refine_prompt` tool.
+In clients supporting MCP Prompts, users still supply only `request` and optional `context`, `language`, and `mode`. The shortcut returns `prompt_record_required` and host instructions so the AI authors a document and makes the actual `refine_prompt` call. The shortcut does not claim it generated or recorded an execution prompt itself.
 
 ### Resource: `intent-bridge://guide`
 
