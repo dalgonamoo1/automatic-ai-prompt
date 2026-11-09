@@ -107,6 +107,8 @@ Click a title to expand its command. **Install** lets you choose AI apps. **Upda
 
 **Uninstall** removes this tool's MCP connections and managed instructions. Other settings and user instructions are preserved. Server files and backups are retained.
 
+**Help** shows usage and available options. **Previews** show what would change without modifying AI settings or removing connections.
+
 On Windows, if PowerShell blocks `npx`, **replace `npx` with `npx.cmd`** in any command below.
 
 <details>
@@ -154,7 +156,43 @@ npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.gi
 
 </details>
 
-For client filters, previews, JSON output, and help, see the [Advanced guide](docs/advanced.en.md).
+<details>
+<summary>Help</summary>
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git --help
+```
+
+</details>
+
+<details>
+<summary>Preview installation</summary>
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --dry-run
+```
+
+</details>
+
+<details>
+<summary>Preview updates</summary>
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git update --dry-run
+```
+
+</details>
+
+<details>
+<summary>Preview uninstall</summary>
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git uninstall --dry-run
+```
+
+</details>
+
+For client filters, JSON output, and other options, see the [Advanced guide](docs/advanced.en.md).
 
 ## Good to know
 
