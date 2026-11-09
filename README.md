@@ -79,7 +79,7 @@ Cursor나 VS Code에 연결하려면 **사용할 프로젝트 폴더에서** 터
 
 ### 2. 설치 명령 실행하기
 
-[명령어](#명령어)에서 **설치·업데이트**를 펼쳐 복사한 뒤 실행하세요. Windows PowerShell에서 `npx`가 차단되면 **Windows 설치·업데이트**를 사용하면 됩니다.
+[명령어](#명령어)에서 **설치**를 펼쳐 복사한 뒤 실행하세요. Windows PowerShell에서 `npx`가 차단되면 **Windows 설치**를 사용하면 됩니다.
 
 ### 3. 연결할 AI 선택하기
 
@@ -101,10 +101,10 @@ Codex·Claude Code·Gemini CLI는 사용자 전체에, Cursor·VS Code는 현재
 
 ## 명령어
 
-제목을 누르면 명령어가 펼쳐집니다.
+제목을 누르면 명령어가 펼쳐집니다. **설치**는 연결할 AI를 선택하고, **업데이트**는 이전에 연결한 AI와 프로젝트를 유지해 최신 버전으로 갱신합니다.
 
 <details>
-<summary>설치·업데이트</summary>
+<summary>설치</summary>
 
 ```bash
 npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup
@@ -113,10 +113,28 @@ npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup
 </details>
 
 <details>
-<summary>Windows 설치·업데이트</summary>
+<summary>업데이트</summary>
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git update
+```
+
+</details>
+
+<details>
+<summary>Windows 설치</summary>
 
 ```powershell
 npx.cmd -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup
+```
+
+</details>
+
+<details>
+<summary>Windows 업데이트</summary>
+
+```powershell
+npx.cmd -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git update
 ```
 
 </details>
@@ -131,10 +149,10 @@ npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client
 </details>
 
 <details>
-<summary>변경 전 미리보기</summary>
+<summary>업데이트 미리보기</summary>
 
 ```bash
-npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client codex --dry-run
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git update --dry-run
 ```
 
 </details>
@@ -143,7 +161,7 @@ npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client
 <summary>도움말</summary>
 
 ```bash
-npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --help
+npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git --help
 ```
 
 </details>

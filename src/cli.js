@@ -4,11 +4,11 @@ import { createServer } from './server.js';
 import { createHttpApp, readHttpConfig } from './http.js';
 
 const args = process.argv.slice(2);
-if (args[0] === 'setup') {
+if (args[0] === 'setup' || args[0] === 'update') {
   const { runSetupCli } = await import('./setup-cli.js');
-  process.exitCode = await runSetupCli(args.slice(1));
+  process.exitCode = await runSetupCli(args.slice(1), { operation: args[0] });
 } else if (args.includes('--help') || args.includes('-h')) {
-  console.log('Usage: automatic-ai-prompt setup [options]\n       automatic-ai-prompt [--http]\nsetup: choose AI clients, install a persistent server, and register MCP + workflow instructions.\nDefault: MCP over stdio. --http: Streamable HTTP on 127.0.0.1:3000/mcp.\nHTTP env: HOST, PORT, MCP_ALLOWED_HOSTS, MCP_AUTH_TOKEN (optional).');
+  console.log('Usage: automatic-ai-prompt setup [options]\n       automatic-ai-prompt update [options]\n       automatic-ai-prompt [--http]\nsetup: choose AI clients and register MCP + workflow instructions.\nupdate: update the existing connections without choosing clients again.\nDefault: MCP over stdio. --http: Streamable HTTP on 127.0.0.1:3000/mcp.\nHTTP env: HOST, PORT, MCP_ALLOWED_HOSTS, MCP_AUTH_TOKEN (optional).');
 } else if (args.some((arg) => arg !== '--http') || args.length > 1) {
   console.error('Unknown arguments. Run intent-bridge-mcp --help.');
   process.exitCode = 1;

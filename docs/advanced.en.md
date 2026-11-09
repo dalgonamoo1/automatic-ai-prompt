@@ -29,7 +29,17 @@ Select multiple apps without the menu:
 npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client codex --client claude_code
 ```
 
-Run the same command again to refresh the connection with the latest source. Setup replaces its managed instruction block rather than appending duplicates. Older server versions are retained for apps that may still be running. To pin a Git commit, append `#COMMIT_SHA` to the Git URL.
+Use `setup` to select and register new connections. Use the separate `update` command to refresh existing connections:
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git update
+```
+
+Update uses `connections.json` in the installation folder to find the registered apps and projects. It does not reopen the selection menu. Existing server options and instruction preferences are preserved. Entries you removed or replaced with another server are not recreated. Managed instruction blocks are replaced rather than duplicated.
+
+For installations such as version 0.2 that have no connection catalog, update discovers existing entries in user settings and the current project. Run `update` once from any other previously connected project to include it in future updates. If you installed with a custom `--install-dir` or `--config-dir`, use the same paths when updating.
+
+Older server versions are retained for apps that may still be running. To pin a Git commit, append `#COMMIT_SHA` to the Git URL.
 
 Preview the affected paths without installing or changing configuration:
 
@@ -37,7 +47,13 @@ Preview the affected paths without installing or changing configuration:
 npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client codex --dry-run
 ```
 
-Additional options are `--project PATH`, `--install-dir PATH`, and `--no-instructions`. For automation or isolated setup, use `--config-dir PATH` to select a configuration root instead of the default user directory. Run `setup --help` for all options. The current CLI menu and help text are in Korean.
+To preview updates to existing connections:
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git update --dry-run
+```
+
+Additional options are `--project PATH`, `--install-dir PATH`, and `--no-instructions`. For automation or isolated setup, use `--config-dir PATH` to select a configuration root instead of the default user directory. Run `setup --help` or `update --help` for all options. The current CLI menu and help text are in Korean.
 
 The setup flow follows the approach of [REA setup](https://rea.tools/get-started/): select a client and register MCP together with workflow instructions. This project's implementation was written for this tool.
 

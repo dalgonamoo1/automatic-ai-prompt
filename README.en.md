@@ -79,7 +79,7 @@ For Cursor or VS Code, open your terminal **in the project folder where you want
 
 ### 2. Run the setup command
 
-Open **Install / update** in [Commands](#commands), copy the command, and run it. If PowerShell blocks `npx`, use **Windows install / update** instead.
+Open **Install** in [Commands](#commands), copy the command, and run it. If PowerShell blocks `npx`, use **Windows install** instead.
 
 ### 3. Choose your AI apps
 
@@ -103,10 +103,10 @@ If an app asks you to trust the server or approve MCP tool use, handle that requ
 
 ## Commands
 
-Click a title to expand its command.
+Click a title to expand its command. **Install** lets you choose AI apps. **Update** refreshes the existing apps and projects without asking you to select them again.
 
 <details>
-<summary>Install / update</summary>
+<summary>Install</summary>
 
 ```bash
 npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup
@@ -115,10 +115,28 @@ npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup
 </details>
 
 <details>
-<summary>Windows install / update</summary>
+<summary>Update</summary>
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git update
+```
+
+</details>
+
+<details>
+<summary>Windows install</summary>
 
 ```powershell
 npx.cmd -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup
+```
+
+</details>
+
+<details>
+<summary>Windows update</summary>
+
+```powershell
+npx.cmd -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git update
 ```
 
 </details>
@@ -133,10 +151,10 @@ npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client
 </details>
 
 <details>
-<summary>Preview changes</summary>
+<summary>Preview updates</summary>
 
 ```bash
-npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client codex --dry-run
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git update --dry-run
 ```
 
 </details>
@@ -145,7 +163,7 @@ npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client
 <summary>Help</summary>
 
 ```bash
-npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --help
+npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git --help
 ```
 
 </details>

@@ -29,7 +29,17 @@ macOS/Linux 서버는 기본 `~/.local/share/automatic-ai-prompt`, Windows는 `%
 npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client codex --client claude_code
 ```
 
-최신 코드로 연결을 갱신하려면 같은 명령을 다시 실행하세요. 기존 실행 지침은 중복 추가하지 않고 관리되는 부분만 교체합니다. 이미 실행 중인 앱을 위해 이전 서버 버전은 자동 삭제하지 않습니다. 특정 Git 커밋에 고정하려면 Git URL 뒤에 `#커밋SHA`를 붙일 수 있습니다.
+`setup`은 새로 연결할 AI를 선택하는 설치 명령입니다. 기존 연결을 갱신할 때는 별도의 `update` 명령을 사용하세요.
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git update
+```
+
+업데이트는 설치 폴더의 `connections.json`에 기록한 AI와 프로젝트를 찾아 갱신합니다. 선택 메뉴는 다시 열지 않으며, 기존 서버 옵션과 실행 지침 포함 여부를 유지합니다. 사용자가 제거했거나 다른 서버로 바꾼 연결은 다시 만들지 않습니다. 기존 실행 지침은 중복 추가하지 않고 관리되는 부분만 교체합니다.
+
+0.2 버전처럼 연결 기록이 없는 설치는 사용자 설정과 현재 프로젝트에서 기존 연결을 찾습니다. 이전에 연결한 다른 프로젝트는 해당 폴더에서 한 번 `update`를 실행하면 이후 업데이트 대상에 포함됩니다. 사용자 지정 `--install-dir` 또는 `--config-dir`로 설치했다면 업데이트에도 같은 경로를 지정하세요.
+
+이미 실행 중인 앱을 위해 이전 서버 버전은 자동 삭제하지 않습니다. 특정 Git 커밋에 고정하려면 Git URL 뒤에 `#커밋SHA`를 붙일 수 있습니다.
 
 설정 변경 없이 대상 파일을 보려면:
 
@@ -37,7 +47,13 @@ npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client
 npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client codex --dry-run
 ```
 
-추가 옵션: `--project 경로`, `--install-dir 경로`, `--no-instructions`. 자동화나 격리 설치에서는 `--config-dir 경로`로 기본 사용자 폴더 대신 별도 설정 루트를 지정할 수 있습니다. 자세한 옵션은 `setup --help`를 확인하세요.
+기존 연결의 업데이트만 미리 보려면:
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git update --dry-run
+```
+
+추가 옵션: `--project 경로`, `--install-dir 경로`, `--no-instructions`. 자동화나 격리 설치에서는 `--config-dir 경로`로 기본 사용자 폴더 대신 별도 설정 루트를 지정할 수 있습니다. 자세한 옵션은 `setup --help`, `update --help`를 확인하세요.
 
 이 설치 흐름은 [REA의 setup 방식](https://rea.tools/get-started/)처럼 한 명령에서 클라이언트를 선택하고 MCP와 워크플로 지침을 연결하는 방식입니다. 구현은 이 프로젝트용으로 작성했습니다.
 

@@ -11,6 +11,26 @@ const record = (value) => value !== null && typeof value === 'object' && !Array.
 const prefix = (a, b) => a.length <= b.length && a.every((key, i) => key === b[i]);
 const keys = (node) => node.keys.map((key) => key.name ?? key.value);
 
+function tomlValue(value) {
+  if (typeof value === 'string' || typeof value === 'boolean') return JSON.stringify(value);
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (Array.isArray(value)) return `[${value.map(tomlValue).join(', ')}]`;
+  if (record(value) && [Object.prototype, null].includes(Object.getPrototypeOf(value))) return `{ ${Object.entries(value).map(([key, item]) => `${JSON.stringify(key)} = ${tomlValue(item)}`).join(', ')} }`;
+  throw new Error('기존 MCP 설정에 자동 갱신할 수 없는 값이 있습니다. 원본은 변경하지 않았습니다.');
+}
+
+export function readServerSettings(source, format, rootKey = format === 'toml' ? 'mcp_servers' : 'mcpServers') {
+  if (source === null) return undefined;
+  let data;
+  if (format === 'toml') data = getStaticTOMLValue(parseTOML(source.replace(/^\uFEFF/, '')));
+  else {
+    const errors = [];
+    data = parseJsonc(source.replace(/^\uFEFF/, ''), errors, { allowTrailingComma: format === 'jsonc', disallowComments: format === 'json' });
+    if (errors.length || !record(data)) throw new Error('JSON 설정을 읽을 수 없습니다.');
+  }
+  return data[rootKey]?.[SERVER_KEY];
+}
+
 export function updateJson(source, connection, { rootKey = 'mcpServers', strict = false } = {}) {
   const bom = source.startsWith('\uFEFF') ? '\uFEFF' : '';
   const body = source.slice(bom.length) || '{}';
@@ -66,7 +86,7 @@ export function updateToml(source, connection) {
       else for (const child of node.body) scan(child, node.resolvedKey);
     }
   }
-  const inline = `{ command = ${JSON.stringify(connection.command)}, args = ${JSON.stringify(connection.args)} }`;
+  const inline = tomlValue(connection);
   if (exactValue) changes.push({ start: exactValue.range[0], end: exactValue.range[1], text: inline });
   else if (inlineParent) {
     const last = inlineParent.body.at(-1);
@@ -79,7 +99,7 @@ export function updateToml(source, connection) {
   }
   if (!exactValue && !inlineParent) {
     const eol = body.includes('\r\n') ? '\r\n' : '\n';
-    output += `${output.endsWith('\n') || !output ? '' : eol}${eol}[mcp_servers.${JSON.stringify(SERVER_KEY)}]${eol}command = ${JSON.stringify(connection.command)}${eol}args = ${JSON.stringify(connection.args)}${eol}`;
+    output += `${output.endsWith('\n') || !output ? '' : eol}${eol}[mcp_servers.${JSON.stringify(SERVER_KEY)}]${eol}${Object.entries(connection).map(([key, value]) => `${JSON.stringify(key)} = ${tomlValue(value)}`).join(eol)}${eol}`;
   }
   let verified;
   try { verified = getStaticTOMLValue(parseTOML(output)); }
@@ -144,23 +164,27 @@ export async function snapshot(file) {
   }
 }
 
-export async function buildSetupPlan({ clients, homeDir, projectDir, platform, env, isolated, entry, node = process.execPath, instructions, withInstructions = true }) {
+export async function buildSetupPlan({ clients, connections, homeDir, projectDir, platform, env, isolated, entry, node = process.execPath, instructions, withInstructions = true }) {
   const plan = [];
-  for (const id of clients) {
+  for (const selection of connections ?? clients.map((id) => ({ client: id }))) {
+    const id = selection.client;
     const client = CLIENTS.find((candidate) => candidate.id === id);
-    const files = clientFiles(id, { homeDir, projectDir, platform, env, isolated });
-    if (id === 'codex') {
+    const defaults = clientFiles(id, { homeDir, projectDir, platform, env, isolated });
+    const files = selection.config ? { ...defaults, config: selection.config, rules: selection.rules ?? undefined } : defaults;
+    if (id === 'codex' && files.rules) {
       const override = path.join(path.dirname(files.rules), 'AGENTS.override.md');
       if ((await snapshot(override)).text !== null) files.rules = override;
     }
     const original = await snapshot(files.config);
-    const connection = { ...(id === 'vscode' ? { type: 'stdio' } : {}), command: node, args: [entry] };
+    const connection = { ...(selection.settings ?? {}), ...(id === 'vscode' ? { type: 'stdio' } : {}), command: node, args: [entry] };
     let content;
     try {
       content = client.format === 'toml' ? updateToml(original.text ?? '', connection) : updateJson(original.text ?? '', connection, { rootKey: files.rootKey, strict: client.format === 'json' });
     } catch (error) { throw new Error(`${files.config}: ${error.message}`); }
-    plan.push({ client: id, file: files.config, before: original.text, mode: original.mode, after: content });
-    if (withInstructions && files.rules) {
+    const includeRules = Boolean(withInstructions && selection.withInstructions !== false && files.rules);
+    plan.push({ client: id, file: files.config, before: original.text, mode: original.mode, after: content,
+      connection: { client: id, config: files.config, rules: files.rules ?? null, withInstructions: Boolean((selection.withInstructions ?? withInstructions) && files.rules) } });
+    if (includeRules) {
       const rules = await snapshot(files.rules);
       // Project-specific rule documents are owned files, unlike shared global instructions.
       if (files.frontmatter && rules.text !== null && !rules.text.includes(BEGIN)) throw new Error(`동일한 이름의 사용자 규칙 파일이 있습니다. 원본을 보존합니다: ${files.rules}`);
