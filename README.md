@@ -47,7 +47,7 @@ Windows PowerShell에서 `npx` 실행이 차단되면 `npx.cmd`를 사용하면 
 npx.cmd -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup
 ```
 
-현재 저장소는 비공개이므로 이 저장소를 읽을 수 있는 Git 인증이 설정되어 있어야 합니다. 패키지는 GitHub에서 받으며 npm 레지스트리에는 게시되어 있지 않습니다. 저장소를 나중에 공개하면 같은 명령으로 인증 없이 내려받을 수 있습니다.
+저장소가 공개되어 있어 GitHub 로그인이나 토큰 없이 설치할 수 있습니다. 패키지는 GitHub에서 받으며 npm 레지스트리에는 게시되어 있지 않습니다.
 
 실행하면 연결할 AI를 고르는 메뉴가 나옵니다.
 
@@ -112,12 +112,12 @@ npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client
 자동 설치 대신 직접 설정을 관리하고 싶을 때 사용하세요.
 
 ```bash
-gh repo clone dalgonamoo1/automatic-ai-prompt
+git clone https://github.com/dalgonamoo1/automatic-ai-prompt.git
 cd automatic-ai-prompt
 npm ci --ignore-scripts
 ```
 
-공개 저장소이거나 Git 인증이 설정된 경우 `git clone https://github.com/dalgonamoo1/automatic-ai-prompt.git`도 사용할 수 있습니다.
+GitHub CLI를 사용한다면 `gh repo clone dalgonamoo1/automatic-ai-prompt`로도 내려받을 수 있습니다.
 
 앱에 맞는 설정을 출력합니다. **설정 내용을 화면에 보여 주기만** 하며 기존 설정을 수정하지 않습니다. 출력된 서버 항목을 기존 설정에 합치세요. 다른 서버 항목을 덮어쓰지 마세요.
 
@@ -146,9 +146,9 @@ AI는 이미 제공된 일정과 사유를 반영해 내부 지침을 구체화�
 
 각 앱에 한 번씩 연결해야 합니다. 한 앱의 MCP 설정이 다른 앱에 자동으로 공유되지는 않습니다. 호스트 AI가 도구와 지침을 따르는 정도에 따라 적용 여부와 결과가 달라집니다.
 
-### 공개 배포 후 npx 연결
+### npx로 직접 연결하기 (수동)
 
-저장소가 **공개로 전환되어 누구나 접근할 수 있게 된 뒤**, 로컬 클론 없이 아래 설정을 사용할 수 있습니다. npm 레지스트리에 게시된 패키지라는 뜻은 아니며, GitHub 소스를 설치하는 방식입니다.
+설치기 대신 MCP 설정을 직접 관리하려면 로컬 클론 없이 아래 설정을 사용할 수 있습니다. 공개 GitHub 소스를 설치하는 방식이며, npm 레지스트리에 게시된 패키지라는 뜻은 아닙니다.
 
 ```json
 {
@@ -165,7 +165,7 @@ AI는 이미 제공된 일정과 사유를 반영해 내부 지침을 구체화�
 }
 ```
 
-최초 실행에는 Git과 네트워크가 필요합니다. 검증된 버전을 고정하려면 Git URL 끝에 `#커밋SHA`를 붙이세요. 비공개 저장소는 위의 로컬 설치 방식을 권장합니다.
+최초 실행에는 Git과 네트워크가 필요합니다. 검증된 버전을 고정하려면 Git URL 끝에 `#커밋SHA`를 붙이세요.
 
 ## URL을 요구하는 앱에 연결
 
