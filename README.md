@@ -1,4 +1,4 @@
-# Intent Bridge MCP
+# Automatic AI Prompt · Intent Bridge MCP
 
 **대충 부탁하면, AI가 의도를 파악하고 내부 프롬프트를 구체화한 뒤 작업까지 수행합니다.**
 
@@ -33,9 +33,83 @@ MCP 서버는 실행 지침과 입력 자료를 제공하고, **연결된 AI가 
 - 필수 질문에 답을 받으면 내부 프롬프트를 갱신하고 작업을 이어갑니다.
 - 사용자가 프롬프트 자체를 원한다고 명시한 경우에만 프롬프트를 반환합니다.
 
-## 로컬 MCP 연결
+## 한 명령으로 설치하고 AI 선택하기
 
-Node.js **22 이상**, npm, MCP를 지원하는 앱이 필요합니다. 아래 설치는 한 번만 하면 됩니다. 비공개 저장소는 접근 권한이 있는 GitHub 계정으로 로그인하세요.
+Node.js **22 LTS(22.13 이상) 또는 24 이상**, npm, Git, 연결할 AI 앱이 준비되어 있다면 아래 명령 하나를 실행하세요.
+
+```bash
+npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup
+```
+
+Windows PowerShell에서 `npx` 실행이 차단되면 `npx.cmd`를 사용하면 됩니다. 실행 정책을 바꿀 필요는 없습니다.
+
+```powershell
+npx.cmd -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup
+```
+
+현재 저장소는 비공개이므로 이 저장소를 읽을 수 있는 Git 인증이 설정되어 있어야 합니다. 패키지는 GitHub에서 받으며 npm 레지스트리에는 게시되어 있지 않습니다. 저장소를 나중에 공개하면 같은 명령으로 인증 없이 내려받을 수 있습니다.
+
+실행하면 연결할 AI를 고르는 메뉴가 나옵니다.
+
+```text
+연결할 AI를 선택하세요.
+  1. Codex — 사용자 전체
+  2. Claude Code — 사용자 전체
+  3. Gemini CLI — 사용자 전체
+  4. Cursor — 현재 프로젝트
+  5. VS Code / GitHub Copilot — 현재 프로젝트
+  6. Claude Desktop — MCP 연결
+
+번호 입력 (여러 개: 1,2 / 전체: all):
+```
+
+Linux에서는 공식 Claude Desktop 자동 설정 항목이 표시되지 않습니다. 원하는 앱의 번호를 입력하면 다음을 자동으로 처리합니다.
+
+1. 다운로드 캐시와 별개인 영구 폴더에 MCP 서버와 의존성을 설치합니다.
+2. 실제 서버에 접속해 MCP 초기화와 `refine_prompt` 호출을 검사합니다.
+3. 선택한 앱에 MCP를 등록하고 실행 지침을 추가합니다.
+4. 완료 메시지가 나오면 선택한 AI 앱을 완전히 종료한 뒤 다시 엽니다.
+
+기존 설정과 다른 MCP 항목은 유지합니다. 수정 전 원본은 같은 폴더의 `.bak-*` 파일로 백업하며, 재실행하면 이 도구의 등록 항목과 지침만 갱신합니다. 설정 중 실패하면 이미 적용한 변경을 복원합니다. 설치 후에는 매번 `npx`를 실행할 필요 없이 AI 앱을 평소처럼 사용하세요.
+
+### 연결 범위
+
+| 앱 | MCP 설정 | 실행 지침 |
+| --- | --- | --- |
+| Codex | `~/.codex/config.toml` | `~/.codex/AGENTS.md` (기존 override가 있으면 해당 파일) |
+| Claude Code | `~/.claude.json` | `~/.claude/CLAUDE.md` |
+| Gemini CLI | `~/.gemini/settings.json` | `~/.gemini/GEMINI.md` |
+| Cursor | 현재 폴더의 `.cursor/mcp.json` | `.cursor/rules/intent-bridge.mdc` |
+| VS Code | 현재 폴더의 `.vscode/mcp.json` | `.github/instructions/intent-bridge.instructions.md` |
+| Claude Desktop | OS별 Claude 설정 파일 | MCP 서버가 제공하는 워크플로 지침 |
+
+Cursor와 VS Code는 사용할 프로젝트 폴더에서 명령을 실행하세요. 다른 프로젝트는 해당 폴더에서 다시 연결할 수 있습니다. Claude Desktop에는 다른 CLI의 전역 지침 파일을 쓰지 않습니다. 각 클라이언트가 서버 지침과 도구를 적용하는 방식에 따라 자동 호출 여부가 달라질 수 있으며, 앱 자체가 요구하는 MCP 도구 사용 승인·신뢰 설정은 앱에서 처리합니다.
+
+macOS/Linux 서버는 기본 `~/.local/share/automatic-ai-prompt`, Windows는 `%LOCALAPPDATA%/automatic-ai-prompt` 아래에 보관합니다. 설치 원본이나 npm 임시 캐시를 정리해도 등록된 서버 경로는 유지됩니다.
+
+### 메뉴 없이 지정 / 업데이트 / 미리보기
+
+여러 AI를 바로 지정할 수도 있습니다.
+
+```bash
+npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client codex --client claude_code
+```
+
+최신 코드로 연결을 갱신하려면 같은 명령을 다시 실행하세요. 기존 실행 지침은 중복 추가하지 않고 관리되는 부분만 교체합니다. 이미 실행 중인 앱을 위해 이전 서버 버전은 자동 삭제하지 않습니다. 특정 Git 커밋에 고정하려면 Git URL 뒤에 `#커밋SHA`를 붙일 수 있습니다.
+
+설정 변경 없이 대상 파일을 보려면:
+
+```bash
+npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client codex --dry-run
+```
+
+추가 옵션: `--project 경로`, `--install-dir 경로`, `--no-instructions`. 자동화나 격리 설치에서는 `--config-dir 경로`로 기본 사용자 폴더 대신 별도 설정 루트를 지정할 수 있습니다. 자세한 옵션은 `setup --help`를 확인하세요.
+
+이 설치 흐름은 [REA의 setup 방식](https://rea.tools/get-started/)처럼 한 명령에서 클라이언트를 선택하고 MCP와 워크플로 지침을 연결하는 방식입니다. 구현은 이 프로젝트용으로 작성했습니다.
+
+## 수동 연결 / 개발용 설치
+
+자동 설치 대신 직접 설정을 관리하고 싶을 때 사용하세요.
 
 ```bash
 gh repo clone dalgonamoo1/automatic-ai-prompt
@@ -56,9 +130,9 @@ npm ci --ignore-scripts
 
 실제 설치 위치와 Node 실행 경로가 들어간 설정을 생성하므로 경로를 직접 입력할 필요가 없습니다. 등록 후 앱의 연결을 다시 시작하고 `refine_prompt`가 표시되는지 확인하세요. 메뉴 이름과 MCP 지원 범위는 앱 버전에 따라 달라질 수 있습니다.
 
-### 자동 적용
+### 수동 설치 시 자동 적용
 
-**MCP 연결만으로 모든 메시지에 자동 적용되는 것은 아닙니다.** [자동 적용 지침](examples/standing-instructions.ko.md)을 앱의 사용자 지침·프로젝트 규칙에 한 번 추가하세요. [영어 지침](examples/standing-instructions.en.md)도 제공합니다.
+`setup`을 사용하면 지원되는 앱의 실행 지침까지 설치합니다. 수동 연결을 선택했다면 [자동 적용 지침](examples/standing-instructions.ko.md)을 앱의 사용자 지침·프로젝트 규칙에 한 번 추가하세요. [영어 지침](examples/standing-instructions.en.md)도 제공합니다. MCP 연결 자체가 모든 메시지를 가로채는 구조는 아닙니다.
 
 자동 적용 지침을 추가한 뒤에는 원래 요청만 입력하면 됩니다.
 
@@ -173,7 +247,9 @@ npm run check
 npm test
 ```
 
-실제 MCP SDK 클라이언트로 stdio 자식 프로세스와 HTTP 서버에 접속해 초기화, 기본 실행·프롬프트 전용 모드 전달, 도구·프롬프트·리소스, 잘못된 입력, 동시 요청 간 데이터 분리, Host·Origin 검증, 선택적 인증, 본문 한도를 테스트합니다. CI는 Node 22와 24에서 실행하도록 구성했습니다.
+실제 MCP SDK 클라이언트로 stdio 자식 프로세스와 HTTP 서버에 접속해 초기화, 기본 실행·프롬프트 전용 모드 전달, 도구·프롬프트·리소스, 잘못된 입력, 동시 요청 간 데이터 분리, Host·Origin 검증, 선택적 인증, 본문 한도를 테스트합니다.
+
+설치기는 별도 임시 폴더에서 여섯 클라이언트의 설정 생성, JSONC 주석과 다른 설정 보존, TOML 테이블·인라인·여러 줄 문자열 처리, 백업, 재설치 중복 방지, 중간 실패 복원, 동시 수정 감지, 미리보기의 무변경 동작을 검증합니다. CI는 Windows·macOS·Linux에서 Node 22와 24를 사용하도록 구성했습니다.
 
 이 테스트는 프로토콜과 데이터 보존을 검증합니다. 다양한 AI 앱에서의 재작성 품질과 원격 호스팅 배포까지 검증한 것은 아닙니다. 품질은 호스트 모델과 제공한 맥락에 영향을 받습니다.
 
