@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: intent-bridge-mcp
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0

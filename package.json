@@ -1,0 +1,37 @@
+{
+  "name": "intent-bridge-mcp",
+  "version": "0.1.0",
+  "description": "Understand rough requests, formulate an internal prompt, and complete the task with the AI you already use. No extra API key.",
+  "type": "module",
+  "bin": {
+    "intent-bridge-mcp": "src/cli.js"
+  },
+  "files": [
+    "src",
+    "scripts",
+    "README.md",
+    "LICENSE",
+    "examples"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/cli.js",
+    "start:http": "node src/cli.js --http",
+    "test": "node --test",
+    "check": "node --check src/cli.js && node --check src/server.js && node --check src/prompt.js && node --check src/http.js",
+    "prepublishOnly": "npm run check && npm test",
+    "config": "node scripts/print-config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dalgonamoo1/automatic-ai-prompt.git"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "express": "5.3.0",
+    "zod": "4.6.7"
+  }
+}
