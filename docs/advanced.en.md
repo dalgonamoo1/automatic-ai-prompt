@@ -57,6 +57,46 @@ Additional options are `--project PATH`, `--install-dir PATH`, and `--no-instruc
 
 The setup flow follows the approach of [REA setup](https://rea.tools/get-started/): select a client and register MCP together with workflow instructions. This project's implementation was written for this tool.
 
+## List, diagnose, and remove connections
+
+These commands manage local MCP connections registered by this project's setup command. They inspect saved connection records and existing installations in the current project. Use `--client codex` to select an app. With `--project PATH`, only that project's Cursor and VS Code connections are included. Supply `--install-dir` and `--config-dir` too if you used custom installation paths.
+
+### List connections: `list`
+
+Shows registered apps, projects, configuration paths, and whether entries were removed or replaced by another server. It does not start servers or change configuration files.
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git list --json
+```
+
+### Diagnose connections: `doctor`
+
+Checks the registered launch path and managed instructions, then uses the configured Node.js and environment to test MCP initialization and tool calls. It does not change configuration or print environment values. Disabled connections are reported without being started.
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git doctor --client codex --json
+```
+
+The JSON `healthy` field reports the result. The exit code is 0 when every selected connection is healthy, and 1 when a problem is found or no connections are selected. Diagnostics cover registration, MCP server responses, and managed instructions. They do not verify automatic tool use or task quality inside each AI app.
+
+### Remove connections: `uninstall`
+
+By default, removes this tool's MCP entry and marked instruction block from every registered connection. Entries replaced by another server are left intact. Other MCP servers, user instructions, and user additions to rule files are preserved. Project rule files created by this tool are deleted only when they contain no additional user content.
+
+Preview the changes first:
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git uninstall --dry-run
+```
+
+Remove only one app:
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git uninstall --client codex
+```
+
+Files are backed up before changes or deletion. If applying the plan fails, earlier changes are rolled back. Server files and backups are retained for running sessions and recovery. Restart your AI apps afterward. All three commands support `--help` and structured output with `--json`.
+
 ## Manual connection and development setup
 
 Use this if you prefer to manage configuration yourself.

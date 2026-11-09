@@ -23,11 +23,15 @@ export async function loadConnectionState(installDir) {
   return { file, original, connections: data.connections, exists: true };
 }
 
-export function connectionStateEdit(state, added) {
-  const records = new Map(state.connections.map((item) => [pathKey(item.config), item]));
-  for (const item of added) records.set(pathKey(item.config), {
+export function connectionStateEdit(state, added, removed = []) {
+  const removedPaths = new Set(removed.map(pathKey));
+  const records = new Map(state.connections.filter((item) => !removedPaths.has(pathKey(item.config))).map((item) => [pathKey(item.config), item]));
+  for (const item of added) {
+    if (removedPaths.has(pathKey(item.config))) continue;
+    records.set(pathKey(item.config), {
     client: item.client, config: item.config, rules: item.rules, withInstructions: item.withInstructions,
-  });
+    });
+  }
   const connections = [...records.values()].sort((a, b) => a.config.localeCompare(b.config));
   return { file: state.file, before: state.original.text, mode: state.original.mode,
     after: `${JSON.stringify({ version: 1, connections }, null, 2)}\n` };

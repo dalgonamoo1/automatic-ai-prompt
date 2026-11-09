@@ -1,6 +1,6 @@
 {
   "name": "automatic-ai-prompt",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Understand rough requests, formulate an internal prompt, and complete the task with the AI you already use. No extra API key.",
   "type": "module",
   "bin": {
@@ -21,7 +21,7 @@
     "start": "node src/cli.js",
     "start:http": "node src/cli.js --http",
     "test": "node --test",
-    "check": "node --check src/cli.js && node --check src/server.js && node --check src/prompt.js && node --check src/http.js && node --check src/setup-cli.js && node --check src/setup-config.js && node --check src/setup-runtime.js && node --check src/setup-state.js",
+    "check": "node --check src/cli.js && node --check src/server.js && node --check src/prompt.js && node --check src/http.js && node --check src/setup-cli.js && node --check src/setup-config.js && node --check src/setup-runtime.js && node --check src/setup-state.js && node --check src/manage-cli.js",
     "prepublishOnly": "npm run check && npm test",
     "config": "node scripts/print-config.js"
   },

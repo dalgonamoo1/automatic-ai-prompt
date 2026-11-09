@@ -7,6 +7,7 @@ import { parseTOML, getStaticTOMLValue } from 'toml-eslint-parser';
 export const SERVER_KEY = 'intent-bridge';
 const BEGIN = '<!-- automatic-ai-prompt:begin -->';
 const END = '<!-- automatic-ai-prompt:end -->';
+export { BEGIN as INSTRUCTIONS_BEGIN, END as INSTRUCTIONS_END };
 const record = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 const prefix = (a, b) => a.length <= b.length && a.every((key, i) => key === b[i]);
 const keys = (node) => node.keys.map((key) => key.name ?? key.value);
@@ -52,6 +53,80 @@ export function updateJson(source, connection, { rootKey = 'mcpServers', strict 
     formattingOptions: { insertSpaces: true, tabSize: 2, eol: body.includes('\r\n') ? '\r\n' : '\n' },
   });
   return bom + applyEdits(body, edits);
+}
+
+export function removeJsonServer(source, { rootKey = 'mcpServers', strict = false } = {}) {
+  const bom = source.startsWith('\uFEFF') ? '\uFEFF' : '';
+  const body = source.slice(bom.length);
+  const current = parseJsonc(body);
+  // Reuse the full validator, including duplicate-key and container checks.
+  updateJson(source, current?.[rootKey]?.[SERVER_KEY], { rootKey, strict });
+  if (!current?.[rootKey] || !Object.hasOwn(current[rootKey], SERVER_KEY)) return source;
+  return bom + applyEdits(body, modify(body, [rootKey, SERVER_KEY], undefined, {
+    formattingOptions: { insertSpaces: true, tabSize: 2, eol: body.includes('\r\n') ? '\r\n' : '\n' },
+  }));
+}
+
+export function removeTomlServer(source) {
+  const bom = source.startsWith('\uFEFF') ? '\uFEFF' : '';
+  const body = source.slice(bom.length);
+  let ast;
+  try { ast = parseTOML(body); } catch { throw new Error('Codex 설정의 TOML 형식이 올바르지 않습니다.'); }
+  const current = getStaticTOMLValue(ast);
+  if (!record(current.mcp_servers) || !Object.hasOwn(current.mcp_servers, SERVER_KEY)) return source;
+  const target = ['mcp_servers', SERVER_KEY];
+  const edits = [];
+  const inlineRemovals = new Map();
+  const erase = (node, parent) => {
+    edits.push({ start: node.range[0], end: node.range[1] });
+    if (!parent) return;
+    if (!inlineRemovals.has(parent)) inlineRemovals.set(parent, new Set());
+    inlineRemovals.get(parent).add(node);
+  };
+  const scan = (node, parentKeys, parent) => {
+    const full = [...parentKeys, ...keys(node.key)];
+    if (prefix(target, full)) erase(node, parent);
+    else if (prefix(full, target) && node.value.type === 'TOMLInlineTable') {
+      for (const child of node.value.body) scan(child, full, node.value);
+    }
+  };
+  for (const node of ast.body[0].body) {
+    if (node.type === 'TOMLKeyValue') scan(node, [], null);
+    else if (node.type === 'TOMLTable') {
+      if (prefix(target, node.resolvedKey)) edits.push({ start: node.range[0], end: node.range[1] });
+      else for (const child of node.body) scan(child, node.resolvedKey, null);
+    }
+  }
+  for (const [parent, removed] of inlineRemovals) {
+    let keptBefore = false;
+    for (let i = 0; i < parent.body.length; i++) {
+      const node = parent.body[i];
+      if (!removed.has(node)) keptBefore = true;
+      const next = parent.body[i + 1];
+      const keepSeparator = Boolean(next && !removed.has(next) && keptBefore);
+      for (const token of ast.tokens) {
+        if (token.value === ',' && token.range[0] >= node.range[1] && token.range[1] <= (next?.range[0] ?? parent.range[1] - 1) && !keepSeparator) {
+          edits.push({ start: token.range[0], end: token.range[1] });
+        }
+      }
+    }
+  }
+  let output = body;
+  for (const edit of edits.sort((a, b) => b.start - a.start)) output = output.slice(0, edit.start) + output.slice(edit.end);
+  let verified;
+  try { verified = getStaticTOMLValue(parseTOML(output)); } catch { throw new Error('Codex 연결을 안전하게 제거하지 못했습니다.'); }
+  if (Object.hasOwn(verified.mcp_servers ?? {}, SERVER_KEY)) throw new Error('Codex 연결을 안전하게 제거하지 못했습니다.');
+  return bom + output;
+}
+
+export function removeInstructions(source) {
+  const start = source.indexOf(BEGIN);
+  const end = source.indexOf(END);
+  if (start < 0 && end < 0) return source;
+  if (start < 0 || end < start || source.indexOf(BEGIN, start + BEGIN.length) >= 0 || source.indexOf(END, end + END.length) >= 0) {
+    throw new Error('자동 적용 지침의 구분자가 손상되어 제거를 중단했습니다.');
+  }
+  return source.slice(0, start) + source.slice(end + END.length);
 }
 
 // Use TOML syntax ranges, so a fake section header inside a multiline string
@@ -217,7 +292,8 @@ export async function applySetupPlan(plan) {
         await fs.writeFile(backup, item.before, { flag: 'wx', mode: item.mode });
         backups.push(backup);
       }
-      await writeAtomic(item.file, item.after, item.mode);
+      if (item.after === null) await fs.unlink(item.file);
+      else await writeAtomic(item.file, item.after, item.mode);
       written.push(item);
     }
     return { changed: written.map((item) => item.file), backups };

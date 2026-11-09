@@ -57,6 +57,46 @@ npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.gi
 
 이 설치 흐름은 [REA의 setup 방식](https://rea.tools/get-started/)처럼 한 명령에서 클라이언트를 선택하고 MCP와 워크플로 지침을 연결하는 방식입니다. 구현은 이 프로젝트용으로 작성했습니다.
 
+## 연결 목록 · 진단 · 제거
+
+세 명령은 이 프로젝트의 자동 설치기로 등록한 로컬 MCP 연결을 관리합니다. 저장된 연결 기록과 현재 프로젝트의 기존 설치를 확인합니다. `--client codex`처럼 특정 AI만 고를 수 있고, `--project 경로`를 지정하면 해당 프로젝트의 Cursor·VS Code 연결만 대상으로 합니다. 사용자 지정 설치 경로가 있다면 `--install-dir`, `--config-dir`도 함께 지정하세요.
+
+### 연결 목록: `list`
+
+등록된 AI와 프로젝트, 설정 파일 위치, 연결이 삭제되거나 다른 서버로 바뀌었는지 보여줍니다. 서버를 실행하거나 설정 파일을 변경하지 않습니다.
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git list --json
+```
+
+### 연결 진단: `doctor`
+
+등록된 서버 실행 경로와 관리 지침을 확인하고, 설정된 Node.js와 환경변수로 서버를 실행해 MCP 초기화·도구 호출을 검사합니다. 설정 파일은 변경하지 않으며 환경변수 값은 결과에 출력하지 않습니다. 비활성화된 연결은 실행하지 않고 상태를 알려줍니다.
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git doctor --client codex --json
+```
+
+JSON의 `healthy`가 정상 여부를 나타냅니다. 모든 대상이 정상이면 종료 코드 0, 문제가 있거나 대상이 없으면 1입니다. 진단 범위는 등록 설정·MCP 서버 응답·관리 지침이며, AI 앱 안에서의 자동 호출이나 실제 작업 품질을 검증하는 것은 아닙니다.
+
+### 연결 제거: `uninstall`
+
+기본적으로 등록된 모든 연결에서 이 도구의 MCP 항목과 표시된 관리 지침 블록을 제거합니다. 다른 서버로 교체된 항목은 그대로 둡니다. 다른 MCP 서버, 사용자 문장, 규칙 파일에 추가한 사용자 내용은 보존합니다. 이 도구가 만든 프로젝트 규칙 파일에 사용자 내용이 없다면 해당 파일도 제거합니다.
+
+실행 전 확인하려면:
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git uninstall --dry-run
+```
+
+특정 AI만 제거하려면:
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git uninstall --client codex
+```
+
+수정·삭제 전 파일은 백업하고, 적용 중 실패하면 이미 변경한 내용을 복원합니다. 실행 중인 서버와 복구를 위해 서버 파일·백업은 자동 삭제하지 않습니다. 완료 후 AI 앱을 재시작하세요. `list`, `doctor`, `uninstall` 모두 `--help`를 지원하며, `--json`으로 결과를 구조화해 받을 수 있습니다.
+
 ## 수동 연결 / 개발용 설치
 
 자동 설치 대신 직접 설정을 관리하고 싶을 때 사용하세요.

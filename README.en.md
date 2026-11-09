@@ -103,9 +103,11 @@ If an app asks you to trust the server or approve MCP tool use, handle that requ
 
 ## Commands
 
-Click a title to expand its command. **Install** lets you choose AI apps. **Update** refreshes the existing apps and projects without asking you to select them again.
+Click a title to expand its command. **Install** lets you choose AI apps. **Update** refreshes existing connections. Use **List connections** to see registered apps and projects, and **Diagnose connections** to check server responses.
 
-On Windows, if PowerShell blocks `npx`, **replace `npx` with `npx.cmd`** in either command.
+**Uninstall** removes this tool's MCP connections and managed instructions. Other settings and user instructions are preserved. Server files and backups are retained.
+
+On Windows, if PowerShell blocks `npx`, **replace `npx` with `npx.cmd`** in any command below.
 
 <details>
 <summary>Install</summary>
@@ -125,7 +127,34 @@ npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.gi
 
 </details>
 
-For direct client selection, update previews, and help, see the [Advanced guide](docs/advanced.en.md).
+<details>
+<summary>Diagnose connections</summary>
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git doctor
+```
+
+</details>
+
+<details>
+<summary>List connections</summary>
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git list
+```
+
+</details>
+
+<details>
+<summary>Uninstall</summary>
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git uninstall
+```
+
+</details>
+
+For client filters, previews, JSON output, and help, see the [Advanced guide](docs/advanced.en.md).
 
 ## Good to know
 
