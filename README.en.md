@@ -79,7 +79,7 @@ For Cursor or VS Code, open your terminal **in the project folder where you want
 
 ### 2. Run the setup command
 
-Open **Install** in [Commands](#commands), copy the command, and run it. If PowerShell blocks `npx`, use **Windows install** instead.
+Open **Install** in [Commands](#commands), copy the command, and run it.
 
 ### 3. Choose your AI apps
 
@@ -105,6 +105,8 @@ If an app asks you to trust the server or approve MCP tool use, handle that requ
 
 Click a title to expand its command. **Install** lets you choose AI apps. **Update** refreshes the existing apps and projects without asking you to select them again.
 
+On Windows, if PowerShell blocks `npx`, **replace `npx` with `npx.cmd`** in either command.
+
 <details>
 <summary>Install</summary>
 
@@ -123,50 +125,7 @@ npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.gi
 
 </details>
 
-<details>
-<summary>Windows install</summary>
-
-```powershell
-npx.cmd -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup
-```
-
-</details>
-
-<details>
-<summary>Windows update</summary>
-
-```powershell
-npx.cmd -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git update
-```
-
-</details>
-
-<details>
-<summary>Connect Codex and Claude Code</summary>
-
-```bash
-npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --client codex --client claude_code
-```
-
-</details>
-
-<details>
-<summary>Preview updates</summary>
-
-```bash
-npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git update --dry-run
-```
-
-</details>
-
-<details>
-<summary>Help</summary>
-
-```bash
-npx -y git+https://github.com/dalgonamoo1/automatic-ai-prompt.git --help
-```
-
-</details>
+For direct client selection, update previews, and help, see the [Advanced guide](docs/advanced.en.md).
 
 ## Good to know
 
