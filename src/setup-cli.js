@@ -115,7 +115,7 @@ export async function runSetupCli(args, { input = process.stdin, output = proces
     output.write(`MCP 초기화·도구 호출 검사 통과. ${changed.length}개 설정 파일을 적용했습니다.\n`);
     if (backups.length) output.write(`기존 파일 백업: ${backups.length}개 (.bak-* 파일)\n`);
     output.write('완료! 선택한 AI 앱을 완전히 종료한 뒤 다시 열어 주세요.\n');
-    output.write('이제 평소처럼 요청하면 의도 정리 → 필요한 질문 → 작업 수행 흐름을 사용합니다.\n');
+    output.write('현재 채팅에 도구가 제공되고 실행 지침이 적용되면, 도구 이름 없이 작업을 맡겨도 먼저 사용합니다.\n');
     output.write(`서버 보관 위치: ${runtime.root}\n`);
     return 0;
   } catch (error) {

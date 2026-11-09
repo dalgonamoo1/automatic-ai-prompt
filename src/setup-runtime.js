@@ -68,7 +68,7 @@ function runNpm(npmCli, args, { cwd, env }) {
 }
 
 export async function verifyRuntime(entry, { command = process.execPath, env } = {}) {
-  const client = new Client({ name: 'automatic-ai-prompt-setup', version: '0.4.0' });
+  const client = new Client({ name: 'automatic-ai-prompt-setup', version: '0.4.1' });
   const transport = new StdioClientTransport({ command, args: [entry], ...(env ? { env } : {}), stderr: 'pipe' });
   transport.stderr?.resume();
   let timeout;
@@ -111,7 +111,7 @@ export async function installRuntime({ sourceRoot, installDir, env = process.env
     const npmCli = await findNpmCli(env);
     await runNpm(npmCli, [hasLock ? 'ci' : 'install', '--omit=dev', '--ignore-scripts', '--no-audit', '--no-fund', '--loglevel=error'], { cwd: stage, env });
     await verifyRuntime(path.join(stage, 'src', 'cli.js'));
-    await fs.writeFile(path.join(stage, '.automatic-ai-prompt.json'), JSON.stringify({ digest: runtime.digest, version: '0.4.0' }), { mode: 0o600 });
+    await fs.writeFile(path.join(stage, '.automatic-ai-prompt.json'), JSON.stringify({ digest: runtime.digest, version: '0.4.1' }), { mode: 0o600 });
     await fs.rename(stage, runtime.root);
     return runtime;
   } finally { await fs.rm(stage, { recursive: true, force: true }); }

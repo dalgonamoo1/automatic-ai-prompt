@@ -19,6 +19,14 @@ Connect it to the AI you already use through MCP. Your AI identifies the goal an
 
 **The connected AI performs this workflow itself.** The server makes no additional model API calls.
 
+### Do I have to mention the tool every time?
+
+No. The default installation also adds instructions to **use `refine_prompt` first when you assign a task**. Make ordinary requests such as "Write an email", "Summarize this document", "Make a study plan", or "Fix this sentence". Detailed requests and small edits count, as do question-shaped task requests such as "Can you analyze this document?" Simple informational questions, greetings, and casual conversation are excluded.
+
+The AI calls once per new task and continues after clarification answers without another call. In MCP lists, the registered server is named **`intent-bridge`** and its tool is **`refine_prompt`**.
+
+Automatic use requires **the tool to be available in the current chat and the AI to apply the workflow instructions**. An MCP server cannot intercept every message or force a call. A listed server may still be unavailable in a particular chat, and a successful `doctor` check does not verify automatic use by the AI. For manual connections or missed automatic calls, add the [standing instructions](examples/standing-instructions.en.md) to your app's user instructions or project rules once, then check in a new chat. Installing with `--no-instructions` skips local workflow instruction files.
+
 ## Examples
 
 These examples illustrate how a request turns into completed work. The internal instructions are summarized for explanation; during normal use, you receive the task result rather than the intermediate prompt.

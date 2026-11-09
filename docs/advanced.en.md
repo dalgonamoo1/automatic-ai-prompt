@@ -126,6 +126,8 @@ The generated configuration includes the actual installation path and Node execu
 
 After adding the instructions, make an ordinary request:
 
+The default scope covers tasks that create, edit, analyze, summarize, plan, code, or produce another deliverable, including detailed requests and small edits. Question-shaped requests such as "Can you analyze this?" count as tasks when they ask for work. Greetings, casual conversation, and simple informational questions are excluded. Call once per new task, without another call for clarification answers in the same task. The instructions require the AI to disclose unavailable or failed calls instead of claiming it used the tool.
+
 > Write an email to my manager saying the deadline has moved from Friday to Monday. We need more time for review, and I do not want it to sound like an excuse.
 
 The AI uses the schedule and reason already provided to formulate its internal prompt, then writes the email. It should not stop for information such as a name that can use a placeholder. It asks only when missing information would materially change the content or correctness.
@@ -135,6 +137,15 @@ If you want only a prompt, say so explicitly:
 > Write a prompt for getting feedback on a junior developer portfolio. Give me the prompt only.
 
 Each app needs its own initial connection. One app's MCP settings do not automatically transfer to another. Behavior and quality depend on how the host AI follows the tools and instructions.
+
+### Check automatic use
+
+1. Run `update` for an existing installation, fully restart the AI app, and open a new chat. An installation made with `--no-instructions` keeps that choice during updates. To add local workflow instructions, run `setup` and select that AI again.
+2. Check that the current chat can use `refine_prompt` from the `intent-bridge` server. A registered MCP entry does not prove that a particular chat can call it.
+3. Without naming the tool, ask "Make a one-week English study plan with 30 minutes per day". Check the app's tool activity for a `refine_prompt` call; a completed plan alone does not prove a call occurred.
+4. If the AI asks an essential question, answer it and confirm that it continues without another call or an extra execute request. Simple informational questions such as "What is photosynthesis?" are excluded from automatic calls.
+
+`doctor` checks server connectivity rather than the AI's tool selection. If automatic calls are missing, check whether the workflow instructions are applied and the tool is available in that chat. Instructions cannot activate a tool that the app does not expose.
 
 ### Run directly through npx
 
