@@ -105,6 +105,8 @@ Codex·Claude Code·Gemini CLI는 사용자 전체에, Cursor·VS Code는 현재
 
 **제거**는 이 도구의 MCP 연결과 관리 지침을 해제합니다. 다른 설정과 사용자 지침은 보존하고, 서버 파일과 백업도 남깁니다.
 
+**도움말**은 사용법과 옵션을 보여줍니다. **미리보기**는 변경할 대상만 확인하고 AI 설정을 바꾸거나 연결을 제거하지 않습니다.
+
 Windows PowerShell에서 `npx` 실행이 차단되면, 아래 명령의 **`npx`만 `npx.cmd`로 바꿔서** 실행하세요.
 
 <details>
@@ -152,7 +154,43 @@ npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.gi
 
 </details>
 
-AI별 선택, 변경 전 미리보기, JSON 출력, 도움말은 [상세 설정](docs/advanced.md)에서 확인하세요.
+<details>
+<summary>도움말</summary>
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git --help
+```
+
+</details>
+
+<details>
+<summary>설치 미리보기</summary>
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git setup --dry-run
+```
+
+</details>
+
+<details>
+<summary>업데이트 미리보기</summary>
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git update --dry-run
+```
+
+</details>
+
+<details>
+<summary>제거 미리보기</summary>
+
+```bash
+npx -y --prefer-online git+https://github.com/dalgonamoo1/automatic-ai-prompt.git uninstall --dry-run
+```
+
+</details>
+
+AI별 선택, JSON 출력, 세부 옵션은 [상세 설정](docs/advanced.md)에서 확인하세요.
 
 ## 알아두기
 
