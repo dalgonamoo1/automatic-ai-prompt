@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="468" viewBox="0 0 1040 468" role="img" aria-labelledby="title desc">
+  <title id="title">Install with one command and choose your AI apps</title>
+  <desc id="desc">Setup lists Codex, Claude Code, Gemini CLI, Cursor, VS Code, and Claude Desktop. Select apps by number, install and register MCP, then restart the apps. Claude Desktop is omitted on Linux. This is a translated illustration; the live setup menu currently uses Korean.</desc>
+  <style>text{font-family:"Noto Sans CJK KR","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}</style>
+  <rect width="1040" height="468" rx="24" fill="#0f172a"/>
+  <text x="32" y="46" font-size="25" font-weight="700" fill="#f8fafc">Connect your AI once. Then ask as usual.</text>
+  <rect x="32" y="76" width="566" height="342" rx="16" fill="#111c32" stroke="#334155"/>
+  <path d="M32 121H598" stroke="#334155"/>
+  <circle cx="55" cy="99" r="5" fill="#fb7185"/>
+  <circle cx="73" cy="99" r="5" fill="#fbbf24"/>
+  <circle cx="91" cy="99" r="5" fill="#34d399"/>
+  <text x="315" y="105" text-anchor="middle" font-size="13" fill="#94a3b8">Automatic AI Prompt · Setup example</text>
+  <text x="58" y="155" font-size="18" font-weight="600" fill="#e2e8f0">Choose your AI apps.</text>
+  <g font-size="16" fill="#cbd5e1">
+    <text x="66" y="190">1.  Codex</text>
+    <text x="66" y="218">2.  Claude Code</text>
+    <text x="66" y="246">3.  Gemini CLI</text>
+    <text x="66" y="274">4.  Cursor</text>
+    <text x="66" y="302">5.  VS Code / GitHub Copilot</text>
+    <text x="66" y="330">6.  Claude Desktop</text>
+  </g>
+  <rect x="56" y="350" width="518" height="44" rx="10" fill="#063e3a"/>
+  <text x="72" y="378" font-size="16" fill="#99f6e4">Your choices: 1,2</text>
+  <text x="552" y="378" text-anchor="end" font-size="14" fill="#5eead4">Select multiple apps</text>
+
+  <g transform="translate(646 83)">
+    <circle cx="20" cy="26" r="20" fill="#312e81"/>
+    <text x="20" y="32" text-anchor="middle" font-size="15" font-weight="700" fill="#c7d2fe">01</text>
+    <text x="56" y="24" font-size="21" font-weight="700" fill="#f8fafc">Choose apps</text>
+    <text x="56" y="52" font-size="15" fill="#94a3b8">Enter the app numbers.</text>
+    <path d="M20 52V98" stroke="#334155" stroke-width="2"/>
+    <circle cx="20" cy="123" r="20" fill="#134e4a"/>
+    <text x="20" y="129" text-anchor="middle" font-size="15" font-weight="700" fill="#99f6e4">02</text>
+    <text x="56" y="122" font-size="21" font-weight="700" fill="#f8fafc">Install · connect · verify</text>
+    <text x="56" y="150" font-size="15" fill="#94a3b8">Register MCP and workflow rules.</text>
+    <path d="M20 150V196" stroke="#334155" stroke-width="2"/>
+    <circle cx="20" cy="221" r="20" fill="#134e4a"/>
+    <text x="20" y="227" text-anchor="middle" font-size="15" font-weight="700" fill="#99f6e4">03</text>
+    <text x="56" y="220" font-size="21" font-weight="700" fill="#f8fafc">Restart your AI apps</text>
+    <text x="56" y="248" font-size="15" fill="#94a3b8">Then make requests as usual.</text>
+  </g>
+  <text x="34" y="447" font-size="13" fill="#94a3b8">Translated example · The live menu is in Korean; Claude Desktop is omitted on Linux.</text>
+</svg>

@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="550" viewBox="0 0 1040 550" role="img" aria-labelledby="title desc">
+  <title id="title">From a short request to completed work</title>
+  <desc id="desc">The connected AI interprets a short request and formulates an internal task prompt. It asks questions if key information is missing, incorporates the answers, completes the task, and delivers the result.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f8fafc"/><stop offset="1" stop-color="#eef2ff"/></linearGradient>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 8 4 0 8" fill="none" stroke="#64748b" stroke-width="1.5"/></marker>
+    <marker id="questionArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 8 4 0 8" fill="none" stroke="#b45309" stroke-width="1.5"/></marker>
+    <marker id="returnArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 8 4 0 8" fill="none" stroke="#0f766e" stroke-width="1.5"/></marker>
+  </defs>
+  <style>text{font-family:"Noto Sans CJK KR","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}.title{font-size:22px;font-weight:700;fill:#0f172a}.body{font-size:16px;fill:#475569}.number{font-size:15px;font-weight:700;fill:#fff}</style>
+  <rect width="1040" height="550" rx="24" fill="url(#bg)"/>
+  <text x="40" y="46" font-size="13" font-weight="700" letter-spacing="2" fill="#6366f1">HOW IT WORKS</text>
+  <text x="40" y="87" font-size="30" font-weight="700" fill="#0f172a">Short requests. Clear execution.</text>
+  <g fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)">
+    <path d="M252 227H285"/>
+    <path d="M502 227H535"/>
+    <path d="M752 227H785"/>
+  </g>
+
+  <g transform="translate(40 130)">
+    <rect width="210" height="190" rx="18" fill="#fff" stroke="#dbe2ed"/>
+    <rect x="20" y="20" width="38" height="28" rx="9" fill="#64748b"/>
+    <text class="number" x="39" y="40" text-anchor="middle">01</text>
+    <text class="title" x="20" y="85">Your request</text>
+    <text class="body" x="20" y="117">“Add room booking.”</text>
+    <text class="body" x="20" y="149">Ask in your own words.</text>
+  </g>
+  <g transform="translate(290 130)">
+    <rect width="210" height="190" rx="18" fill="#fff" stroke="#a5b4fc" stroke-width="2"/>
+    <rect x="20" y="20" width="38" height="28" rx="9" fill="#6366f1"/>
+    <text class="number" x="39" y="40" text-anchor="middle">02</text>
+    <text class="title" x="20" y="85">Clarify intent</text>
+    <text class="body" x="20" y="117">Goal · scope · output</text>
+    <rect x="20" y="135" width="170" height="33" rx="8" fill="#eef2ff"/>
+    <text x="105" y="157" text-anchor="middle" font-size="15" font-weight="600" fill="#4338ca">Internal task prompt</text>
+  </g>
+  <g transform="translate(540 130)">
+    <rect width="210" height="190" rx="18" fill="#fff" stroke="#dbe2ed"/>
+    <rect x="20" y="20" width="38" height="28" rx="9" fill="#0f766e"/>
+    <text class="number" x="39" y="40" text-anchor="middle">03</text>
+    <text class="title" x="20" y="85">Do the work</text>
+    <text class="body" x="20" y="117">Use the task prompt.</text>
+    <text class="body" x="20" y="149">Carry out the task.</text>
+  </g>
+  <g transform="translate(790 130)">
+    <rect width="210" height="190" rx="18" fill="#0f172a"/>
+    <rect x="20" y="20" width="38" height="28" rx="9" fill="#34d399"/>
+    <text x="39" y="40" text-anchor="middle" font-size="15" font-weight="700" fill="#052e25">04</text>
+    <text x="20" y="85" font-size="22" font-weight="700" fill="#fff">Deliver results</text>
+    <text x="20" y="117" font-size="16" fill="#cbd5e1">Check the outcome.</text>
+    <text x="20" y="149" font-size="16" fill="#cbd5e1">Share the finished work.</text>
+  </g>
+
+  <path d="M365 322V394" fill="none" stroke="#b45309" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#questionArrow)"/>
+  <text x="340" y="363" text-anchor="end" font-size="14" fill="#92400e">Missing key details</text>
+  <rect x="290" y="400" width="410" height="92" rx="16" fill="#fffbeb" stroke="#fcd34d"/>
+  <circle cx="323" cy="433" r="14" fill="#fef3c7"/>
+  <text x="323" y="440" text-anchor="middle" font-size="20" font-weight="700" fill="#b45309">?</text>
+  <text x="350" y="439" font-size="21" font-weight="700" fill="#78350f">Ask only if needed</text>
+  <text x="313" y="470" font-size="16" fill="#92400e">Update the internal prompt with your answer.</text>
+  <path d="M702 446H766V352H455V325" fill="none" stroke="#0f766e" stroke-width="2" marker-end="url(#returnArrow)"/>
+  <text x="782" y="401" font-size="14" fill="#0f766e">Apply answers</text>
+  <circle cx="45" cy="525" r="4" fill="#10b981"/>
+  <text x="59" y="530" font-size="14" fill="#475569">No extra model API call. Your connected AI does the work.</text>
+</svg>
