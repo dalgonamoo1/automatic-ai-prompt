@@ -96,6 +96,8 @@ For ordinary ChatGPT chats, connect through a **remote MCP plugin**, separately 
 
 The plugin instructs ChatGPT to use the tool automatically for tasks, but the server cannot force tool selection. Menus and availability depend on the app version, account, and administrator settings. Private deployments are account-specific; making the GitHub repository public does not share a plugin.
 
+To keep a backup or recreate this plugin with another AI, use the [recreation guide](docs/rebuild-plugin.en.md). Personal and Pro accounts cannot currently share a Site-hosted plugin directly by link; Business and Enterprise workspace sharing requires plugin and Site access.
+
 ## Installation
 
 The commands below install into local clients such as Codex and Claude Code. Use the plugin connection above for ordinary ChatGPT chats. Shared MCP configuration in desktop work modes on the same local host is separate from a remote connection for ordinary chats.
