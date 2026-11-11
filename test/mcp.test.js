@@ -17,6 +17,7 @@ async function assertMcpFeatures(client) {
     request: '신입 개발자 포트폴리오 피드백해줘',
     context: '취업 준비 중이며 프로젝트 2개가 있음', constraints: ['한국어'],
     execution_prompt: '취업을 준비하는 신입 개발자의 프로젝트 2개를 검토하고 채용 담당자 관점의 개선 피드백을 한국어로 작성한다. 자료에 없는 성과를 만들지 않는다.',
+    intent: { goal: '신입 개발자의 프로젝트 2개를 검토', deliverable: '개선 피드백', success_criteria: ['한국어로 작성한다.', '자료에 없는 성과를 만들지 않는다.'], known_facts: [{ fact: '프로젝트 2개', source_quote: '프로젝트 2개' }] },
   } });
   assert.ok(!result.isError);
   assert.equal(result.structuredContent.source.request, '신입 개발자 포트폴리오 피드백해줘');
@@ -25,9 +26,18 @@ async function assertMcpFeatures(client) {
   assert.equal(result.structuredContent.workflow.final_output, 'task_result');
   assert.equal(result.structuredContent.workflow.after_clarification, 'record_revision_then_execute');
   assert.deepEqual(JSON.parse(result.content[0].text), result.structuredContent);
+  const omitted = await client.callTool({ name: 'refine_prompt', arguments: {
+    request: '500자 이하로 일정 변경 메일 써줘.', constraints: ['500자 이하'],
+    execution_prompt: '일정 변경 메일 제목과 본문을 작성한다.',
+    intent: { goal: '일정 변경', deliverable: '메일 제목과 본문', success_criteria: ['작성한다.'] },
+  } });
+  assert.equal(omitted.structuredContent.status, 'prompt_revision_required');
+  assert.equal(omitted.structuredContent.workflow.ready_for_host_execution, false);
+  assert.ok(omitted.structuredContent.quality_gate.issues.some(issue => issue.section === 'constraints'));
+
 
   const promptOnly = await client.callTool({ name: 'refine_prompt', arguments: {
-    request: '포트폴리오 피드백을 요청할 프롬프트만 만들어줘', mode: 'prompt_only', execution_prompt: '주어진 개발자 포트폴리오의 프로젝트 설명을 검토하고 근거와 함께 개선할 항목을 제안해 줘.',
+    request: '포트폴리오 피드백을 요청할 프롬프트만 만들어줘', mode: 'prompt_only', execution_prompt: '주어진 개발자 포트폴리오의 프로젝트 설명을 검토하고 근거와 함께 개선할 항목을 제안해 줘.', intent: { goal: '주어진 개발자 포트폴리오', deliverable: '개선할 항목', success_criteria: ['근거와 함께'] },
   } });
   assert.ok(!promptOnly.isError);
   assert.equal(promptOnly.structuredContent.workflow.final_output, 'improved_prompt');
@@ -54,19 +64,19 @@ async function assertMcpFeatures(client) {
   const blank = await client.callTool({ name: 'refine_prompt', arguments: { request: '작업', execution_prompt: '  ' } });
   assert.equal(blank.isError, true);
   const contradictory = await client.callTool({ name: 'refine_prompt', arguments: {
-    request: '작업', execution_prompt: '주어진 조건대로 작업을 수행한다.', prompt_state: 'ready', questions: ['미해결 질문'],
+    request: '작업', execution_prompt: '주어진 조건대로 작업을 수행한다.', intent: { goal: '작업', deliverable: '작업', success_criteria: ['주어진 조건대로'] }, prompt_state: 'ready', questions: ['미해결 질문'],
   } });
   assert.equal(contradictory.isError, true);
   const originalText = '\n광합성 칩의 의미를 확인한 뒤 개발 경로를 제안한다.\n';
   const draft = await client.callTool({ name: 'refine_prompt', arguments: {
-    request: '광합성 칩 개발하고 싶어', execution_prompt: originalText,
+    request: '광합성 칩 개발하고 싶어', execution_prompt: originalText, intent: { goal: '광합성 칩의 의미를 확인', deliverable: '개발 경로', success_criteria: ['개발 경로를 제안한다.'], unknowns: [{ question: '빛으로 전기를 만들려는 목표인가요, 화학물질을 만들려는 목표인가요?', why_it_matters: '광흡수부와 반응 촉매가 달라진다.', blocking: true }] },
     prompt_state: 'needs_clarification', questions: ['빛으로 전기를 만들려는 목표인가요, 화학물질을 만들려는 목표인가요?'],
   } });
   assert.equal(draft.structuredContent.prompt_record.text, originalText);
   assert.equal(draft.structuredContent.workflow.ready_for_host_execution, false);
   const finalText = '빛·물·CO₂로 화학물질을 만드는 칩의 개발 경로를 연구 근거와 함께 제안한다. 목표 생성물과 장비·예산은 미정으로 구분하고 검증 단계를 포함한다.';
   const ready = await client.callTool({ name: 'refine_prompt', arguments: {
-    request: '광합성 칩 개발하고 싶어', execution_prompt: finalText,
+    request: '광합성 칩 개발하고 싶어', execution_prompt: finalText, intent: { goal: '빛·물·CO₂로 화학물질을 만드는 칩', deliverable: '개발 경로', success_criteria: ['검증 단계를 포함한다.'] },
     context: '빛·물·CO₂로 화학물질을 만들겠다고 답함.',
     revision: 2, previous_prompt_id: draft.structuredContent.prompt_record.id,
   } });
@@ -80,7 +90,7 @@ async function assertMcpFeatures(client) {
 
   // Each request must preserve its own input when calls run concurrently.
   const outputs = await Promise.all(['첫째 요청', '둘째 요청'].map((request) =>
-    client.callTool({ name: 'refine_prompt', arguments: { request, execution_prompt: `${request}에 해당하는 결과물을 작성하고 사용자가 준 조건을 준수한다.` } })));
+    client.callTool({ name: 'refine_prompt', arguments: { request, execution_prompt: `${request}에 해당하는 결과물을 작성하고 사용자가 준 조건을 준수한다.`, intent: { goal: `${request}에 해당하는 결과물을 작성`, deliverable: '결과물', success_criteria: ['사용자가 준 조건을 준수한다.'] } } })));
   assert.deepEqual(outputs.map((out) => out.structuredContent.source.request), ['첫째 요청', '둘째 요청']);
 }
 

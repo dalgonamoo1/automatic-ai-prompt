@@ -68,7 +68,7 @@ function runNpm(npmCli, args, { cwd, env }) {
 }
 
 export async function verifyRuntime(entry, { command = process.execPath, env } = {}) {
-  const client = new Client({ name: 'automatic-ai-prompt-setup', version: '0.5.0' });
+  const client = new Client({ name: 'automatic-ai-prompt-setup', version: '0.7.0' });
   const transport = new StdioClientTransport({ command, args: [entry], ...(env ? { env } : {}), stderr: 'pipe' });
   transport.stderr?.resume();
   let timeout;
@@ -79,8 +79,8 @@ export async function verifyRuntime(entry, { command = process.execPath, env } =
         const tools = await client.listTools();
         if (!tools.tools.some((tool) => tool.name === 'refine_prompt')) throw new Error('Required tool unavailable');
         const executionPrompt = '설치 진단 요청에 정상적으로 응답하고 MCP 도구 호출이 가능한지 확인한다.';
-        const result = await client.callTool({ name: 'refine_prompt', arguments: { request: '설치 상태 확인', execution_prompt: executionPrompt } });
-        if (result.isError || result.structuredContent?.workflow?.final_output !== 'task_result' || result.structuredContent?.prompt_record?.text !== executionPrompt) throw new Error('Unexpected workflow');
+        const result = await client.callTool({ name: 'refine_prompt', arguments: { request: '설치 상태 확인', execution_prompt: executionPrompt, intent: { goal: 'MCP 도구 호출이 가능한지 확인한다.', deliverable: '설치 진단 요청에 정상적으로 응답', success_criteria: ['MCP 도구 호출이 가능한지 확인한다.'] }  } });
+        if (result.isError || result.structuredContent?.workflow?.final_output !== 'task_result' || result.structuredContent?.prompt_record?.text !== executionPrompt || result.structuredContent?.quality_gate?.status !== 'passed' || result.structuredContent?.workflow?.ready_for_host_execution !== true) throw new Error('Unexpected workflow');
         return { server: client.getServerVersion(), tools: tools.tools.map((tool) => tool.name) };
       })(),
       new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('MCP timeout')), 15000); }),
@@ -112,7 +112,7 @@ export async function installRuntime({ sourceRoot, installDir, env = process.env
     const npmCli = await findNpmCli(env);
     await runNpm(npmCli, [hasLock ? 'ci' : 'install', '--omit=dev', '--ignore-scripts', '--no-audit', '--no-fund', '--loglevel=error'], { cwd: stage, env });
     await verifyRuntime(path.join(stage, 'src', 'cli.js'));
-    await fs.writeFile(path.join(stage, '.automatic-ai-prompt.json'), JSON.stringify({ digest: runtime.digest, version: '0.5.0' }), { mode: 0o600 });
+    await fs.writeFile(path.join(stage, '.automatic-ai-prompt.json'), JSON.stringify({ digest: runtime.digest, version: '0.7.0' }), { mode: 0o600 });
     await fs.rename(stage, runtime.root);
     return runtime;
   } finally { await fs.rm(stage, { recursive: true, force: true }); }

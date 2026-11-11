@@ -5,7 +5,7 @@ import { buildBrief, buildPromptRequest, refineShape, HOST_INSTRUCTIONS, REWRITE
 
 export function createServer() {
   const server = new McpServer(
-    { name: 'intent-bridge', version: '0.5.0' },
+    { name: 'intent-bridge', version: '0.7.0' },
     { instructions: HOST_INSTRUCTIONS },
   );
 

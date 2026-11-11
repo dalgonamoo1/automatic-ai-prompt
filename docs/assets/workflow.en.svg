@@ -32,7 +32,7 @@
     <text class="title" x="20" y="85">Clarify intent</text>
     <text class="body" x="20" y="117">Goal · scope · output</text>
     <rect x="20" y="135" width="170" height="33" rx="8" fill="#eef2ff"/>
-    <text x="105" y="157" text-anchor="middle" font-size="15" font-weight="600" fill="#4338ca">Write &amp; record prompt</text>
+    <text x="105" y="157" text-anchor="middle" font-size="15" font-weight="600" fill="#4338ca">Check &amp; record prompt</text>
   </g>
   <g transform="translate(540 130)">
     <rect width="210" height="190" rx="18" fill="#fff" stroke="#dbe2ed"/>

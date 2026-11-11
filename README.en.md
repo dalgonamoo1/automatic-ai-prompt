@@ -8,6 +8,17 @@ Connect it to the AI you already use through MCP. Your AI identifies the goal an
 
 [How it works](#how-it-works) · [Examples](#examples) · [Connect ChatGPT](#use-in-chatgpt) · [Installation](#installation) · [Commands](#commands) · [Advanced guide](docs/advanced.en.md)
 
+## 0.7.0: strengthen the original task workflow
+
+Building on 0.5.0, the single `refine_prompt` tool now checks a host-authored intent: goal, deliverable, completion criteria, quoted facts, safe assumptions, and important unknowns. Users still make ordinary short requests.
+
+- **Declared conditions missing from the prompt:** return `prompt_revision_required` so the AI repairs its own document before work.
+- **Material unanswered questions:** return only blocking questions with their reasons; supplied answer quotes resolve questions instead of repeating intake.
+- **Routine preferences:** use explicit safe defaults and continue.
+- **Passed document:** execute the recorded instructions and return the actual result. Keep the initial and revised originals.
+
+These are structural and quote-presence checks on supplied fields. They cannot discover every omitted requirement, prove a paraphrase means the same thing, authenticate the supplied context, or force AI behavior. `intent` is a new required tool input; update local clients or redeploy the server and open a new chat. No additional model API is used.
+
 ## How it works
 
 ![A short request becomes an internal task prompt. If key information is missing, the AI asks questions and incorporates the answers, then completes the task and delivers the result.](docs/assets/workflow.en.svg)

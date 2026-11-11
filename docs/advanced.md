@@ -235,27 +235,29 @@ Render의 `RENDER_EXTERNAL_HOSTNAME`은 자동으로 허용됩니다. 무료 인
 
 ```json
 {
-  "request": "경쟁사 분석 자료 만들고 싶음",
-  "context": "우리 서비스는 한국 대학생을 위한 중고거래 앱",
-  "constraints": ["확인되지 않은 수치 지어내지 않기"],
-  "execution_prompt": "한국 대학생 대상 중고거래 앱의 경쟁사를 조사하고 서비스 특징·수익 모델·대학생 사용 맥락을 비교 표와 핵심 시사점으로 정리한다. 확인된 1차 자료를 인용하고, 수치가 없으면 미확인이라고 표시한다. 경쟁사 선정과 전략 제안은 사실과 구분한다.",
-  "prompt_state": "ready",
-  "language": "auto",
-  "mode": "execute"
+  "request": "영어 공부 계획 짜줘. 하루 30분씩 일주일이고 여행 회화가 목적이야.",
+  "constraints": ["하루 30분", "일주일"],
+  "intent": {
+    "goal": "여행 회화",
+    "deliverable": "영어 공부 계획",
+    "success_criteria": ["각 날짜의 완료 기준"],
+    "known_facts": [{"fact": "여행 회화", "source_quote": "여행 회화가 목적"}]
+  },
+  "execution_prompt": "여행 회화를 위한 영어 공부 계획을 하루 30분씩 일주일로 작성한다. 각 날짜의 완료 기준을 포함한다."
 }
 ```
 
-**0.5부터 `request`와 `execution_prompt`가 필수입니다.** 호스트 AI가 실제 작업 지시문을 먼저 작성해 전달합니다. 누락·빈 문안은 오류이며 서버가 일반 초안으로 대체하지 않습니다. 사용자가 이 문안을 직접 작성할 필요는 없습니다. 0.4 호출자는 새 스키마로 변경해야 하며, 앱·플러그인은 도구 스키마를 갱신한 새 채팅에서 사용하세요.
+0.7부터 `request`, `intent`, `execution_prompt`가 필수입니다. 호스트 AI가 작성하며 사용자가 이 양식을 채울 필요는 없습니다. intent에는 `goal`, `deliverable`, 최소 1개의 `success_criteria`가 필요합니다. 선택 항목 `known_facts`의 fact와 source_quote는 전달된 요청·문맥·조건에 실제 인용이 있어야 합니다. `assumptions`는 명시적인 안전한 기본 선택입니다. `unknowns`에는 question·why_it_matters·blocking을 넣고, 이미 답이 있다면 실제 answer_quote를 연결합니다.
 
-목적·확인된 조건·결과물·필요한 완성 기준을 작업 크기에 맞게 작성하세요. 입력 한도는 요청 12,000자, 실행 프롬프트 24,000자, 배경 16,000자, 조건 최대 20개(각 2,000자), 결과 형식 4,000자입니다. 원문에는 trim이나 임의 재작성을 적용하지 않습니다.
+목표·결과물·완료 기준·명시 조건·사실·가정의 각 항목이 실행 프롬프트에 들어 있는지 NFC/공백 정규화 후 확인합니다. 바꿔 쓴 항목은 `coverage: [{"section":"constraints","index":0,"prompt_quote":"실제 프롬프트 구절"}]`로 연결합니다. 인덱스는 0부터 시작하며 goal과 deliverable은 0입니다. section은 goal, deliverable, success_criteria, constraints, known_facts, assumptions를 지원합니다. 구절의 존재를 검사하며 의미가 같은지까지 판정하지는 않습니다.
 
-필수 정보가 빠진 경우 `prompt_state: "needs_clarification"`과 핵심 `questions` 1~3개를 함께 전달합니다. `clarification_required` 상태와 `ready_for_host_execution: false`를 반환하므로 질문에 답하기 전에는 확정 문안으로 실행하지 않도록 안내합니다. 답변 후에는 갱신한 프롬프트, 이전 반환값의 `prompt_record.id`를 복사한 `previous_prompt_id`, 1 증가시킨 `revision`, `prompt_state: "ready"`로 다시 호출합니다. ready에는 질문을 넣을 수 없습니다. 첫 호출은 revision 1과 이전 ID 없음, 이후 호출은 revision 2 이상과 이전 ID가 필요합니다.
+조건 누락이나 잘못된 인용은 `prompt_revision_required`, `revision_required` 기록과 `ready_for_host_execution: false`를 반환합니다. AI가 사용자를 다시 조사하지 않고 자신의 누락을 보완한 뒤 연결된 개정으로 기록해야 합니다. 미해결 blocking 질문이 있으면 ready를 요청했어도 `clarification_required`를 반환합니다. 반환된 질문만 묻고, 실제 답이 인용된 질문은 해결된 것으로 처리합니다. 비필수 선호는 질문을 강제하지 않습니다. 어떤 정보가 중요하고 이미 알려졌는지는 호스트가 올바르게 구분해야 합니다.
 
-반환값 `prompt_record`에는 실제 제출한 `text`, `id`, `revision`, 선택적 `previous_prompt_id`, `state`, `recorded_at`이 들어갑니다. 초안과 갱신본은 각각의 MCP 호출 결과에 남습니다. `source`는 원래 요청과 조건이며, `workflow`와 `next_step`은 호스트에게 다음 작업을 안내합니다. 예전 `draft_prompt` 필드는 제거했습니다.
+통과한 execute는 `host_execution_required`, prompt_only는 `prompt_ready`이며 prompt_only에서는 원문만 반환합니다. `intent_record`, `coverage_record`, `quality_gate`와 함께 `prompt_record`에 정확한 원문·ID·개정·시각을 반환합니다. 요청한 상태와 판정 상태가 다르면 requested_state에 남깁니다. 답변이나 누락 보완 후 이전 ID와 증가한 revision으로 기록합니다. 서버는 과거 ID의 진위나 개정의 연속성까지 검증하지 않습니다.
 
-기본 execute의 ready 상태는 `host_execution_required`이며 실제 작업 결과를 반환하도록 안내합니다. prompt_only의 ready 상태는 `prompt_ready`이며 `prompt_record.text` 원문만 반환하고 작업 자체는 수행하지 않습니다. "처음 사용한 프롬프트 보여줘"는 새 호출이 아니라 기존 기록을 인용하는 요청입니다. 기록이 대화에 없으면 원문 조회가 불가능하다고 알리고, 재구성한 내용을 원문으로 주장하면 안 됩니다.
+한도: 목적·결과물 각각 2,500자, 기준 최대 8개(각 1,000자), 사실 최대 12개(fact·quote 각각 1,600자), 가정 최대 8개(각 1,000자), 미확인 사항 최대 6개(미해결 blocking은 한 번에 3개), coverage 최대 50개입니다. 기존 요청·프롬프트·문맥 12,000/24,000/16,000자와 HTTP 전체 본문 한도도 적용됩니다. 프롬프트 원문에는 trim이나 임의 재작성을 적용하지 않습니다.
 
-**검증 범위:** 서버는 필수 문안과 상태·메타데이터 형식을 검사합니다. 의미상 좋은 프롬프트인지, 과거 ID가 실제 기록인지, 개정 번호가 연속인지, 호스트가 실제로 그 지침을 따랐는지는 검증하지 않습니다. 서버는 영구 이력이나 조회 API를 제공하지 않으며 MCP 기록의 보관 여부는 호스트 앱에 달려 있습니다.
+Worker는 입력용 JSON Schema를 내보내 기본값 항목을 선택적으로 유지하며 로컬과 맞춥니다. intent가 없는 이전 호출자는 갱신해야 합니다. 플러그인 스키마를 갱신한 새 채팅에서 사용하세요. 이전 문안을 보여 달라는 요청에는 새 호출 없이 해당 기록을 그대로 인용합니다. 서버는 영구 이력·조회 API를 제공하지 않으며 전달된 대화 진위·모든 누락 정보·의미상 정확성·호스트 실행을 검증하지 않습니다.
 
 ### Prompt: `refine`
 

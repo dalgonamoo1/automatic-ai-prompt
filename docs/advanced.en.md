@@ -235,27 +235,29 @@ Store `MCP_AUTH_TOKEN` as a secret environment variable in your hosting service,
 
 ```json
 {
-  "request": "Help me prepare a competitor analysis",
-  "context": "Our service is a secondhand marketplace for university students in Korea",
-  "constraints": ["Do not invent unverified figures"],
-  "execution_prompt": "Research competitors for a secondhand marketplace serving university students in Korea. Compare service features, revenue models, and student use cases, then summarize the strategic implications. Cite verified primary sources, mark missing figures as unverified, and distinguish competitor-selection and strategy suggestions from facts.",
-  "prompt_state": "ready",
-  "language": "auto",
-  "mode": "execute"
+  "request": "Make a one-week English study plan, 30 minutes per day, for travel conversation.",
+  "constraints": ["30 minutes per day", "one-week"],
+  "intent": {
+    "goal": "travel conversation",
+    "deliverable": "English study plan",
+    "success_criteria": ["completion checks for each day"],
+    "known_facts": [{"fact": "travel conversation", "source_quote": "travel conversation"}]
+  },
+  "execution_prompt": "Create a one-week English study plan for travel conversation with 30 minutes per day. Include completion checks for each day."
 }
 ```
 
-**Version 0.5 requires both `request` and `execution_prompt`.** The host AI must author the actual task instructions first. Missing or blank text returns an error; the server never substitutes a generic draft. Users do not need to write the document themselves. Version 0.4 callers must adopt the new schema; refresh the app/plugin schema and open a new chat.
+Version 0.7 requires `request`, `intent`, and `execution_prompt`. The host AI authors them; the user does not fill out a form. Intent requires `goal`, `deliverable`, and at least one `success_criteria` item. Optional `known_facts` entries have `fact` and a `source_quote` present in supplied request/context/constraints. `assumptions` lists explicit safe defaults. `unknowns` entries contain `question`, `why_it_matters`, `blocking`, and an optional real `answer_quote` to resolve an already answered question.
 
-Include the objective, known constraints, deliverable, and relevant completion checks, scaled to the task. Limits are 12,000 characters for the request, 24,000 for the execution prompt, 16,000 for context, 20 constraints of 2,000 characters each, and 4,000 for the output description. Prompt text is returned without trimming or rewriting.
+The server checks that each declared goal, deliverable, criterion, constraint, fact, and assumption appears in the execution prompt after NFC/whitespace normalization. For a paraphrase, supply `coverage: [{"section":"constraints","index":0,"prompt_quote":"the actual phrase in the prompt"}]`. Indices are zero-based; goal and deliverable use index 0. Supported sections are goal, deliverable, success_criteria, constraints, known_facts, and assumptions. A real quote can demonstrate presence; semantic equivalence is not verified.
 
-For missing essential information, submit `prompt_state: "needs_clarification"` and 1–3 `questions`. The response has `clarification_required` and `ready_for_host_execution: false`, instructing the host not to execute the provisional document as final. After answers, submit the updated prompt with the returned `prompt_record.id` as `previous_prompt_id`, an incremented `revision`, and `prompt_state: "ready"`. Ready records cannot include questions. The first record uses revision 1 with no prior ID; later revisions require revision 2 or higher and a prior ID.
+Bad quotes and missing conditions return `prompt_revision_required`, a `revision_required` record and `ready_for_host_execution: false`. The host should repair its own omissions without asking the user to debug them, then record a linked revision. Valid unanswered blocking unknowns return `clarification_required` even if the caller requested ready. Ask only the returned questions. An actual answer_quote in supplied context resolves a question and prevents that question being asked again. Nonblocking preferences do not require a question. The host still must identify which facts are known and which unknowns matter.
 
-`prompt_record` contains the exact submitted `text`, its `id`, `revision`, optional `previous_prompt_id`, `state`, and `recorded_at`. Initial and updated documents remain in their individual MCP results. `source` contains the original task data, while `workflow` and `next_step` guide the host. The old generic `draft_prompt` field has been removed.
+A passed execute record returns `host_execution_required`; a passed prompt_only record returns `prompt_ready` and must not execute the embedded task. `intent_record`, `coverage_record`, and `quality_gate` accompany `prompt_record` with its exact text, ID, revision and timestamp. If requested state was overridden, `requested_state` records that distinction. After answers or omission repairs, copy the previous record ID and increment revision. The server validates format, not historical link authenticity or consecutive revisions.
 
-A ready execute record has `host_execution_required` and asks the host to return the actual task result. A ready prompt_only record has `prompt_ready` and asks the host to return `prompt_record.text` verbatim without performing its embedded task. Asking to see the first prompt is a lookup in earlier results, not a new recording call. If the record is unavailable, the AI must say it cannot retrieve it and never present a reconstruction as historical text.
+Limits: goal/deliverable 2,500 characters each; up to 8 criteria of 1,000; 12 facts with fact/quote fields of 1,600; 8 assumptions of 1,000; 6 unknowns with at most 3 unresolved blocking questions per round; up to 50 coverage references. Existing request/prompt/context limits remain 12,000/24,000/16,000 characters, plus the HTTP total body limit. Prompt text is never trimmed or silently rewritten.
 
-**Verification limits:** The server checks required text, states, and metadata format. It cannot validate semantic quality, authenticity of previous IDs, consecutive revision numbers, or actual host execution. It has no persistent history or lookup API. Retention of MCP call records depends on the host app.
+The Worker exports JSON Schema in input mode so defaults remain optional, matching local clients. Old callers without intent must update. Use a new chat after refreshing the plugin schema. To see a used prompt, quote the earlier tool-result original rather than make a new call. The server has no persistent history or lookup API. Checks do not authenticate the supplied conversation, infer all missing facts, prove semantic correctness, or verify host execution.
 
 ### Prompt: `refine`
 
