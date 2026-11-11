@@ -2,10 +2,11 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { REFINE_TOOL } from './tool-definition.js';
 import { buildBrief, buildPromptRequest, refineShape, HOST_INSTRUCTIONS, REWRITE_GUIDANCE } from './prompt.js';
+import { checkResult, resultShape, RESULT_TOOL } from './result.js';
 
 export function createServer() {
   const server = new McpServer(
-    { name: 'intent-bridge', version: '0.7.1' },
+    { name: 'intent-bridge', version: '0.8.0' },
     { instructions: HOST_INSTRUCTIONS },
   );
 
@@ -15,6 +16,11 @@ export function createServer() {
       content: [{ type: 'text', text: JSON.stringify(brief, null, 2) }],
       structuredContent: brief,
     };
+  });
+
+  server.registerTool('check_result', { ...RESULT_TOOL, inputSchema: resultShape }, async (input) => {
+    const result = checkResult(input);
+    return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }], structuredContent: result };
   });
 
   server.registerPrompt('refine', {

@@ -1,4 +1,4 @@
-# Recreate the ChatGPT plugin · 0.7.1
+# Recreate the ChatGPT plugin · 0.8.0
 
 [한국어](rebuild-plugin.md)
 
@@ -9,11 +9,13 @@ Keep the complete repository as a ZIP to redeploy this version later. The ZIP co
 Attach the source ZIP and use this request:
 
 ```text
-Recreate the ChatGPT MCP plugin from the attached Automatic AI Prompt 0.7.1 source.
+Recreate the ChatGPT MCP plugin from the attached Automatic AI Prompt 0.8.0 source.
 
 Preserve its behavior and tests. Build src/chatgpt-worker.js with scripts/build-chatgpt.mjs. For an existing deployment, preserve that Site's ID and audience. For a new deployment, create a private Site in my account and use its actual returned project_id with capabilities: ["mcp"]. Do not copy another account's Site or plugin IDs.
 
 Do not add a separate model API or API key. The host AI must author intent (goal, deliverable, success_criteria, quoted facts, assumptions and material unknowns) and the actual execution_prompt before calling refine_prompt; missing or blank text must fail. Record provisional needs_clarification prompts, then record an updated ready revision linked to the prior prompt_record.id after answers. Quote the exact earlier tool-result text when asked to show a used prompt, rather than present a reconstruction as the original. Do not store conversations permanently on the server.
+
+For follow-ups, use the actual prior record in follow_up.previous to preserve conditions and check replacement/removal evidence. Reuse answered questions and use defaults for minor preferences. After execution, use check_result with actual per-condition check evidence; repair failures and disclose unverified items. Do not claim the server runs tests or verifies semantic correctness.
 
 Verify npm ci --ignore-scripts, npm run check, npm test, and npm run build:chatgpt, then deploy the matching source and build. Reuse the plugin created by Sites and explain Install / Connect and checking in a new chat. Do not guarantee automatic calls in every conversation. Publish publicly or invite other people only if I ask.
 ```

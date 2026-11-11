@@ -8,16 +8,15 @@ Connect it to the AI you already use through MCP. Your AI identifies the goal an
 
 [How it works](#how-it-works) · [Examples](#examples) · [Connect ChatGPT](#use-in-chatgpt) · [Installation](#installation) · [Commands](#commands) · [Advanced guide](docs/advanced.en.md)
 
-## 0.7.0: strengthen the original task workflow
+## 0.8.0: Preserve intent through edits and check the result
 
-Building on 0.5.0, the single `refine_prompt` tool now checks a host-authored intent: goal, deliverable, completion criteria, quoted facts, safe assumptions, and important unknowns. Users still make ordinary short requests.
+Start with a rough request and continue through follow-ups and result checks. No additional model API key is needed.
 
-- **Declared conditions missing from the prompt:** return `prompt_revision_required` so the AI repairs its own document before work.
-- **Material unanswered questions:** return only blocking questions with their reasons; supplied answer quotes resolve questions instead of repeating intake.
-- **Routine preferences:** use explicit safe defaults and continue.
-- **Passed document:** execute the recorded instructions and return the actual result. Keep the initial and revised originals.
+- **“Also support mobile”** → compare with the prior task record and retain its conditions. Record replacements/removals with a quote from the new request; repair unexplained omissions before execution.
+- **Reuse previous answers.** Carry forward answers to matching questions. Ask at most three genuinely blocking questions in one round; use explicit defaults for minor preferences.
+- **Check the actual result.** `check_result` checks coverage of the goal, deliverable, completion criteria and constraints, plus supplied quote evidence. Repair failures and disclose anything unverified.
 
-These are structural and quote-presence checks on supplied fields. They cannot discover every omitted requirement, prove a paraphrase means the same thing, authenticate the supplied context, or force AI behavior. `intent` is a new required tool input; update local clients or redeploy the server and open a new chat. No additional model API is used.
+The host AI performs practical inspections and tests. The server checks supplied records and literal quotes; it does not judge meaning, run tests, authenticate conversation snapshots or independently certify success. Automatic selection still depends on the host and tools available in the current chat.
 
 ## How it works
 
@@ -26,7 +25,8 @@ These are structural and quote-presence checks on supplied fields. They cannot d
 1. **Ask in your own words.** Briefly describe what you want done.
 2. **Your AI writes and records the execution prompt.** It authors an actual document with the goal, known constraints, deliverable, and relevant completion checks, then passes it to the tool. Missing or blank prompt text is rejected.
 3. **It asks only when needed.** It first records a provisional prompt and essential questions. After your answers, it records the revised prompt before continuing the task.
-4. **It completes the task and shows the result.** You do not need to approve an intermediate prompt or say “execute” again.
+4. **Perform the task and check its result.** Compare the actual output and evidence with the original goal, deliverable and conditions. Repair omissions and distinguish unverified items.
+5. **Return the completed result.** No prompt approval or extra execute request is needed. Follow-ups revise the task while preserving unchanged conditions.
 
 **The connected AI performs this workflow itself.** The server makes no additional model API calls.
 
@@ -34,7 +34,7 @@ These are structural and quote-presence checks on supplied fields. They cannot d
 
 No. The default installation also adds instructions to **use `refine_prompt` first when you assign a task**. Make ordinary requests such as "Write an email", "Summarize this document", "Make a study plan", or "Fix this sentence". Detailed requests and small edits count, as do question-shaped task requests such as "Can you analyze this document?" Simple informational questions, greetings, and casual conversation are excluded.
 
-The AI records the execution prompt before each new task. After clarification answers, it records the updated document before continuing. In MCP lists, the registered server is named **`intent-bridge`** and its tool is **`refine_prompt`**.
+The AI records the execution prompt before each new task. After clarification answers, it records the updated document before continuing. In MCP lists, the registered server is named **`intent-bridge`** and its tools are **`refine_prompt` and `check_result`**.
 
 Automatic use requires **the tool to be available in the current chat and the AI to apply the workflow instructions**. An MCP server cannot intercept every message or force a call. A listed server may still be unavailable in a particular chat, and a successful `doctor` check does not verify automatic use by the AI. For manual connections or missed automatic calls, add the [standing instructions](examples/standing-instructions.en.md) to your app's user instructions or project rules once, then check in a new chat. Installing with `--no-instructions` skips local workflow instruction files.
 
@@ -47,6 +47,18 @@ You can specify the first version or the one after clarification. “Final promp
 The document lives in the **MCP call and response history**; this server does not store conversations permanently. If the record is no longer available in the conversation, the AI must say it cannot retrieve it. The server validates that text exists and meets the input format, but cannot guarantee its semantic quality or that the AI followed it.
 
 **Version 0.5 requires an execution prompt as a tool input.** Update and restart local clients; redeploy the ChatGPT server and open a new chat for the plugin. Users do not have to write this prompt themselves.
+
+### How are follow-ups handled?
+
+After “Add room booking; prevent overlapping bookings and allow only the owner to cancel”, “also support mobile” keeps both constraints. “Change cancellation to admins only” replaces that one condition. Shortening a prompt must not erase requirements.
+
+The host copies the actual returned task brief into `follow_up.previous` and lists replacements/removals in `follow_up.changes`. The server checks retained conditions and new-request quote presence. Keep original intent wording and use `coverage` for paraphrased prompt text. If the prior record is missing or the referenced task is ambiguous, clarify essential information instead of inventing history. This does not add permanent storage or a history lookup API.
+
+### What does result checking verify?
+
+The host sends the ready brief, candidate result and an assessment for each goal, deliverable, criterion and constraint to `check_result`, supported by result quotes and/or actual observations. For a study plan, the host checks day counts and daily time totals; for code, it runs available relevant tests.
+
+Missing checks or evidence return `verification_incomplete`; failed checks return `needs_revision`. Complete supported host assessments return `host_checks_passed`. **This is the host’s report**, not server-executed tests, source retrieval or semantic verification. Repair and recheck once where possible, then disclose remaining failures or limits. Skip result checks for historical prompt lookups and `prompt_only` documents.
 
 ## Examples
 
@@ -105,7 +117,7 @@ For ordinary ChatGPT chats, connect through a **remote MCP plugin**, separately 
 1. Deploy the ChatGPT server once using the [deployment guide](docs/advanced.en.md#deploy-the-chatgpt-worker). A Sites deployment creates a plugin for the deploying account.
 2. In ChatGPT, open **Plugins → Personal → Created by you**, find **Automatic AI Prompt**, and complete **Install / Connect**. For a connection deployed by someone else, install the plugin they share with you.
 3. Select the plugin in a new chat and make an ordinary request such as "Make a one-week English study plan". You do not need to name the tool every time.
-4. Check tool activity for a **`refine_prompt`** call. A listed plugin or a completed answer alone does not prove a call succeeded.
+4. Check tool activity for **`refine_prompt`**, followed by **`check_result`** after execution. A listed plugin or a completed answer alone does not prove a call succeeded.
 
 The plugin instructs ChatGPT to use the tool automatically for tasks, but the server cannot force tool selection. Menus and availability depend on the app version, account, and administrator settings. Private deployments are account-specific; making the GitHub repository public does not share a plugin.
 

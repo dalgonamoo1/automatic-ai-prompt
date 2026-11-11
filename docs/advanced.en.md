@@ -118,7 +118,7 @@ Print the configuration for your app. These commands **only print configuration*
 | VS Code | `npm run --silent config -- vscode` | `servers` in the workspace's `.vscode/mcp.json` |
 | Codex | `npm run --silent config -- codex` | MCP configuration in `~/.codex/config.toml` |
 
-The generated configuration includes the actual installation path and Node executable, so you do not need to type those paths. Restart the connection and check that `refine_prompt` appears. Menu names and MCP support vary by app version.
+The generated configuration includes the actual installation path and Node executable, so you do not need to type those paths. Restart the connection and check that `refine_prompt` and `check_result` appear. Menu names and MCP support vary by app version.
 
 ### Workflow instructions for manual setup
 
@@ -258,6 +258,22 @@ A passed execute record returns `host_execution_required`; a passed prompt_only 
 Limits: goal/deliverable 2,500 characters each; up to 8 criteria of 1,000; 12 facts with fact/quote fields of 1,600; 8 assumptions of 1,000; 6 unknowns with at most 3 unresolved blocking questions per round; up to 50 coverage references. Existing request/prompt/context limits remain 12,000/24,000/16,000 characters, plus the HTTP total body limit. Prompt text is never trimmed or silently rewritten.
 
 The Worker exports JSON Schema in input mode so defaults remain optional, matching local clients. Old callers without intent must update. Use a new chat after refreshing the plugin schema. To see a used prompt, quote the earlier tool-result original rather than make a new call. The server has no persistent history or lookup API. Checks do not authenticate the supplied conversation, infer all missing facts, prove semantic correctness, or verify host execution.
+
+### Follow-up requests: `follow_up`
+
+For edits to the same task, increment `revision` and attach `previous_prompt_id` and `follow_up.previous`. The bounded snapshot contains `prompt_record`, `intent_record`, `coverage_record`, `source` and `inherited_sources`. A full returned brief is accepted but only those fields are read; there is no persistent history lookup.
+
+Unexplained loss of a previous goal, deliverable, criterion, constraint, fact, assumption or answer produces `dropped_previous_condition` and blocks execution. Declare replacements/removals in `changes` with `section`, prior `index`, `action` (`replace`/`remove`) and a `source_quote` from the new request/context. Replacement also requires `current_index` in the current section. Goal and deliverable use index 0. Add new conditions to the current lists. For paraphrased prompt text, retain original intent wording and provide `coverage`.
+
+Already answered matching questions are carried forward unless explicitly changed. Returned `clarification_plan` separates essential questions and reasons, resolved answers, assumptions and deferred nonblocking questions. Semantic matching of differently worded questions and judgments about necessity remain the host’s responsibility.
+
+### Tool: `check_result`
+
+Send the actual ready returned brief in `task`, the candidate response or accurate artifact description in `result_text`, and per-condition assessments in `checks`. Each check identifies `section` (`goal`, `deliverable`, `success_criteria`, `constraints`), zero-based `index`, `status` (`passed`/`failed`/`unverified`), and a `result_quote` and/or `evidence`. Evidence has `kind` (`inspection`/`test`/`command`/`source`), actual `observation`, and `outcome`. Remove sensitive execution output.
+
+Assess the goal, deliverable, every criterion and every constraint. Missing/duplicate checks, invalid references, absent result quotes and unsupported passed labels remain unverified. Failed evidence overrides a passed status. Overall status is `host_checks_passed`, `needs_revision`, `verification_incomplete` or `invalid_task_record`; the last rejects non-ready or prompt-only records submitted as executed tasks. Repair and recheck once where possible, then disclose remaining failures/limits. Never weaken original conditions to pass.
+
+The server checks supplied snapshots, assessment coverage and quote presence. It does not execute tests, interpret numerical meaning, retrieve sources or authenticate evidence. Skip the tool for historical prompt lookups and prompt_only. Input bounds follow the schema and the HTTP 128 KiB body limit; describe large artifacts accurately with paths and relevant excerpts of actual check output.
 
 ### Prompt: `refine`
 

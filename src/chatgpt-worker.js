@@ -1,18 +1,21 @@
 import { z } from 'zod';
 import { buildBrief, refineSchema, HOST_INSTRUCTIONS } from './prompt.js';
 import { REFINE_TOOL } from './tool-definition.js';
+import { checkResult, resultSchema, RESULT_TOOL } from './result.js';
 
 // Sites enforces sign-in and Site access before forwarding /mcp requests.
 // No conversations, identities, credentials, or request bodies are stored here.
 const MAX_BODY_BYTES = 128 * 1024;
 const VERSIONS = ['2026-07-28', '2025-11-25', '2025-06-18', '2025-03-26'];
-const SERVER = { name: 'intent-bridge', version: '0.7.1' };
+const SERVER = { name: 'intent-bridge', version: '0.8.0' };
 const TOOL = {
   name: 'refine_prompt',
   ...REFINE_TOOL,
   inputSchema: z.toJSONSchema(refineSchema, { target: 'draft-7', io: 'input' }),
   _meta: { 'openai/toolInvocation/invoking': '실행 프롬프트 기록 중', 'openai/toolInvocation/invoked': '실행 프롬프트 기록 완료' },
 };
+const CHECK_TOOL = { name: 'check_result', ...RESULT_TOOL, inputSchema: z.toJSONSchema(resultSchema, { target: 'draft-7', io: 'input' }),
+  _meta: { 'openai/toolInvocation/invoking': '작업 조건 대조 중', 'openai/toolInvocation/invoked': '작업 조건 대조 완료' } };
 
 function json(value, status = 200, headers = {}) {
   return Response.json(value, { status, headers: { 'Cache-Control': 'no-store', ...headers } });
@@ -66,19 +69,20 @@ export async function handleMcp(request) {
     case 'initialize':
       return result({ protocolVersion: VERSIONS.includes(params.protocolVersion) ? params.protocolVersion : '2025-11-25', serverInfo: SERVER, capabilities: { tools: {} }, instructions: HOST_INSTRUCTIONS });
     case 'ping': return result({});
-    case 'tools/list': return result({ tools: [TOOL] });
+    case 'tools/list': return result({ tools: [TOOL, CHECK_TOOL] });
     case 'tools/call': {
-      if (params.name !== 'refine_prompt') return error(id, -32602, 'Unknown tool.');
-      const parsed = refineSchema.safeParse(params.arguments);
-      if (!parsed.success) return result({ isError: true, content: [{ type: 'text', text: 'Invalid tool arguments. Provide request, a nonempty execution_prompt, and intent with goal, deliverable and success_criteria. needs_clarification requires questions; revisions require previous_prompt_id.' }] });
-      const brief = buildBrief(parsed.data);
+      if (!['refine_prompt', 'check_result'].includes(params.name)) return error(id, -32602, 'Unknown tool.');
+      const schema = params.name === 'refine_prompt' ? refineSchema : resultSchema;
+      const parsed = schema.safeParse(params.arguments);
+      if (!parsed.success) return result({ isError: true, content: [{ type: 'text', text: 'Invalid tool arguments. Follow the selected tool input schema. refine_prompt requires request, execution_prompt and intent; revisions require previous_prompt_id. check_result requires the ready task record, result_text and evidence-based checks.' }] });
+      const brief = params.name === 'refine_prompt' ? buildBrief(parsed.data) : checkResult(parsed.data);
       return result({ content: [{ type: 'text', text: JSON.stringify(brief, null, 2) }], structuredContent: brief });
     }
     default: return error(id, -32601, 'Method not found.');
   }
 }
 
-const CONNECT_PAGE = `<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Automatic AI Prompt · ChatGPT</title><style>body{font:17px/1.8 system-ui;max-width:740px;margin:8vh auto;padding:24px;color:#182c28;background:#f5f8f6}h1{line-height:1.3}code{background:#e3ebe7;padding:3px 7px;border-radius:5px}a{color:#176451}hr{border:0;border-top:1px solid #d6e1da;margin:36px 0}</style><h1>Automatic AI Prompt</h1><p>짧게 부탁하면 AI가 의도를 정리하고 작업까지 이어갑니다.</p><ol><li>ChatGPT의 <strong>Plugins → Personal → Created by you</strong>에서 Automatic AI Prompt를 찾아 Install / Connect를 완료하세요.</li><li>새 채팅에서 플러그인을 선택하고 평소처럼 일을 맡기세요.</li><li>실행 기록의 <code>refine_prompt</code> 호출을 확인하세요.</li></ol><p>단순 지식 질문과 인사는 제외합니다. 자동 사용은 현재 채팅의 도구 제공과 AI 지침 적용에 따라 달라집니다. Codex 로컬 설치와 이 플러그인 연결은 별개입니다.</p><p>목적·결과물·완료 기준과 전달된 조건을 검사합니다. 누락은 AI가 먼저 보완하고 중요한 미확인 사항만 질문하도록 안내합니다. 이 검사는 인용 구절과 항목의 일치에 한정되며 의미나 실제 수행의 증명은 아닙니다. 실제 작성한 실행 프롬프트는 도구 호출 결과에 원문과 개정 번호로 남습니다. 나중에 “처음 사용한 프롬프트 보여줘”라고 요청하면 해당 기록을 인용하도록 안내합니다. 현재 대화에 기록이 없으면 원문을 조회할 수 없습니다.</p><p>별도 모델 API 키가 필요하지 않습니다. 이 서버는 대화 내용을 저장하거나 다른 AI를 호출하지 않습니다. 프롬프트 생성과 실제 작업은 연결한 ChatGPT가 수행합니다.</p><hr><h2 lang="en">Connect to ChatGPT</h2><p lang="en">Install and connect Automatic AI Prompt under Plugins → Personal → Created by you, then select it in a new chat. Check the tool activity for <code>refine_prompt</code>. The actual execution prompt is returned verbatim in the tool result with its revision. Ask to see the first or updated prompt; the AI must quote the available record rather than reconstruct an original. No additional model API key is needed. This server does not store conversations or call another AI. Tool availability and automatic selection depend on ChatGPT.</p><p><a href="https://github.com/dalgonamoo1/automatic-ai-prompt">GitHub · 설치 및 상세 안내 / Installation and guide</a></p></html>`;
+const CONNECT_PAGE = `<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Automatic AI Prompt · ChatGPT</title><style>body{font:17px/1.8 system-ui;max-width:740px;margin:8vh auto;padding:24px;color:#182c28;background:#f5f8f6}h1{line-height:1.3}code{background:#e3ebe7;padding:3px 7px;border-radius:5px}a{color:#176451}hr{border:0;border-top:1px solid #d6e1da;margin:36px 0}</style><h1>Automatic AI Prompt</h1><p>짧게 부탁하면 AI가 의도를 정리하고 작업까지 이어갑니다.</p><ol><li>ChatGPT의 <strong>Plugins → Personal → Created by you</strong>에서 Automatic AI Prompt를 찾아 Install / Connect를 완료하세요.</li><li>새 채팅에서 플러그인을 선택하고 평소처럼 일을 맡기세요.</li><li>실행 기록의 <code>refine_prompt</code>와 작업 후 <code>check_result</code> 호출을 확인하세요.</li></ol><p>단순 지식 질문과 인사는 제외합니다. 자동 사용은 현재 채팅의 도구 제공과 AI 지침 적용에 따라 달라집니다. Codex 로컬 설치와 이 플러그인 연결은 별개입니다.</p><p>목적·결과물·완료 기준과 전달된 조건을 검사합니다. 후속 수정에서는 기존 조건과 답변을 이어받고, 작업 후에는 결과의 조건별 검사와 근거를 확인하도록 안내합니다. 누락은 AI가 먼저 보완하고 중요한 미확인 사항만 질문하도록 안내합니다. 이 검사는 인용 구절과 항목의 일치에 한정되며 의미나 실제 수행의 증명은 아닙니다. 실제 작성한 실행 프롬프트는 도구 호출 결과에 원문과 개정 번호로 남습니다. 나중에 “처음 사용한 프롬프트 보여줘”라고 요청하면 해당 기록을 인용하도록 안내합니다. 현재 대화에 기록이 없으면 원문을 조회할 수 없습니다.</p><p>별도 모델 API 키가 필요하지 않습니다. 이 서버는 대화 내용을 저장하거나 다른 AI를 호출하지 않습니다. 프롬프트 생성과 실제 작업은 연결한 ChatGPT가 수행합니다.</p><hr><h2 lang="en">Connect to ChatGPT</h2><p lang="en">Install and connect Automatic AI Prompt under Plugins → Personal → Created by you, then select it in a new chat. Check tool activity for <code>refine_prompt</code> and <code>check_result</code> after execution. Follow-ups retain previous conditions and answers. Result checks rely on host-observed evidence; the server does not run tests or certify semantic correctness. The actual execution prompt is returned verbatim in the tool result with its revision. Ask to see the first or updated prompt; the AI must quote the available record rather than reconstruct an original. No additional model API key is needed. This server does not store conversations or call another AI. Tool availability and automatic selection depend on ChatGPT.</p><p><a href="https://github.com/dalgonamoo1/automatic-ai-prompt">GitHub · 설치 및 상세 안내 / Installation and guide</a></p></html>`;
 
 export default {
   async fetch(request) {

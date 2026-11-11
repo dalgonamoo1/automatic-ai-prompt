@@ -118,7 +118,7 @@ GitHub CLI를 사용한다면 `gh repo clone dalgonamoo1/automatic-ai-prompt`로
 | VS Code | `npm run --silent config -- vscode` | 워크스페이스 `.vscode/mcp.json`의 `servers` |
 | Codex | `npm run --silent config -- codex` | `~/.codex/config.toml`의 MCP 설정 |
 
-실제 설치 위치와 Node 실행 경로가 들어간 설정을 생성하므로 경로를 직접 입력할 필요가 없습니다. 등록 후 앱의 연결을 다시 시작하고 `refine_prompt`가 표시되는지 확인하세요. 메뉴 이름과 MCP 지원 범위는 앱 버전에 따라 달라질 수 있습니다.
+실제 설치 위치와 Node 실행 경로가 들어간 설정을 생성하므로 경로를 직접 입력할 필요가 없습니다. 등록 후 앱의 연결을 다시 시작하고 `refine_prompt`와 `check_result`가 표시되는지 확인하세요. 메뉴 이름과 MCP 지원 범위는 앱 버전에 따라 달라질 수 있습니다.
 
 ### 수동 설치 시 자동 적용
 
@@ -258,6 +258,22 @@ Render의 `RENDER_EXTERNAL_HOSTNAME`은 자동으로 허용됩니다. 무료 인
 한도: 목적·결과물 각각 2,500자, 기준 최대 8개(각 1,000자), 사실 최대 12개(fact·quote 각각 1,600자), 가정 최대 8개(각 1,000자), 미확인 사항 최대 6개(미해결 blocking은 한 번에 3개), coverage 최대 50개입니다. 기존 요청·프롬프트·문맥 12,000/24,000/16,000자와 HTTP 전체 본문 한도도 적용됩니다. 프롬프트 원문에는 trim이나 임의 재작성을 적용하지 않습니다.
 
 Worker는 입력용 JSON Schema를 내보내 기본값 항목을 선택적으로 유지하며 로컬과 맞춥니다. intent가 없는 이전 호출자는 갱신해야 합니다. 플러그인 스키마를 갱신한 새 채팅에서 사용하세요. 이전 문안을 보여 달라는 요청에는 새 호출 없이 해당 기록을 그대로 인용합니다. 서버는 영구 이력·조회 API를 제공하지 않으며 전달된 대화 진위·모든 누락 정보·의미상 정확성·호스트 실행을 검증하지 않습니다.
+
+### 후속 요청: `follow_up`
+
+사용자가 같은 작업의 수정을 요청하면 `revision`을 1 올리고 `previous_prompt_id`와 `follow_up.previous`에 이전 반환 기록을 연결합니다. `previous`는 `prompt_record`, `intent_record`, `coverage_record`, `source`, `inherited_sources`의 제한된 스냅샷입니다. 전체 반환 객체를 보내도 이 필드만 읽으며 영구 조회는 하지 않습니다.
+
+기존 목적·결과물·완료 기준·제약·사실·가정·답변이 설명 없이 빠지면 `dropped_previous_condition`으로 실행을 막습니다. 교체·삭제는 `changes`에 `section`, 이전 `index`, `action`(`replace`/`remove`), 새 요청·문맥의 `source_quote`를 전달합니다. `replace`에는 현재 섹션의 `current_index`도 필요합니다. 목적·결과물의 인덱스는 0입니다. 새 조건은 현재 항목에 추가하면 됩니다. 문안을 바꿔 쓰려면 의도 항목의 원래 문구를 유지하고 `coverage`로 연결할 수 있습니다.
+
+이전과 같은 질문에 이미 답변이 있고 해당 답변의 변경을 선언하지 않았다면 자동으로 이어받습니다. 반환 `clarification_plan`은 필수 질문과 이유, 해결된 질문, 가정, 중요하지 않아 보류한 질문을 구분합니다. 서버는 문맥 의미를 이해하지 않으므로 다르게 표현된 같은 질문의 판별과 필수성 판단은 호스트가 수행합니다.
+
+### Tool: `check_result`
+
+`task`에 실제 사용한 ready 반환 기록, `result_text`에 결과 원문 또는 정확한 파일·산출물 설명, `checks`에 조건별 검사 기록을 전달합니다. `checks`의 section은 `goal`, `deliverable`, `success_criteria`, `constraints`이고 index는 해당 항목의 0부터 시작하는 인덱스입니다. 각 항목은 `status`(`passed`/`failed`/`unverified`)와 `result_quote` 또는 `evidence`를 가집니다. evidence에는 `kind`(`inspection`/`test`/`command`/`source`), 실제 `observation`, `outcome`을 전달합니다. 민감한 실행 출력은 제거해야 합니다.
+
+목표·결과물·모든 완료 기준·제약을 검사해야 하며 누락·중복·잘못된 참조·존재하지 않는 결과 인용·근거 없는 통과는 미확인으로 처리합니다. 실패한 evidence는 통과 status보다 우선합니다. 결과 상태는 `host_checks_passed`, `needs_revision`, `verification_incomplete`, `invalid_task_record` 중 하나입니다. 마지막 상태는 실행 불가·prompt_only 기록을 완료 작업처럼 전달했을 때 반환합니다. 실패는 한 번 보완해 재검사하고 남은 실패·검증 제한을 알립니다. 미확인을 숨기거나 검사에 맞춰 원래 조건을 약화하지 않습니다.
+
+서버는 AI가 전달한 스냅샷·검사 기록과 인용 존재만 확인합니다. 테스트 실행, 계산의 의미 해석, 출처 확인, 근거 진위 검증을 대신하지 않습니다. 원문 조회와 prompt_only에는 호출하지 않습니다. 입력 상한은 도구 스키마와 HTTP의 128 KiB 제한을 따르며, 큰 산출물은 정확한 경로·요약과 실제 검사 출력의 필요한 부분을 전달합니다.
 
 ### Prompt: `refine`
 

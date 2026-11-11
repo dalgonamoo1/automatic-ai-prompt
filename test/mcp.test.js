@@ -9,7 +9,7 @@ import { createHttpApp, readHttpConfig } from '../src/http.js';
 
 async function assertMcpFeatures(client) {
   const tools = await client.listTools();
-  assert.deepEqual(tools.tools.map((tool) => tool.name), ['refine_prompt']);
+  assert.deepEqual(tools.tools.map((tool) => tool.name), ['refine_prompt', 'check_result']);
   assert.equal(tools.tools[0].annotations.readOnlyHint, true);
   assert.match(client.getInstructions(), /rough requests/);
 

@@ -21,7 +21,7 @@ test('ChatGPT Worker supports stateless discovery and actual SDK calls without a
   assert.ok(tools.tools[0].inputSchema.required.includes('execution_prompt'));
   const missing = await client.callTool({ name: 'refine_prompt', arguments: { request: '광합성 칩 개발하고 싶어' } });
   assert.equal(missing.isError, true);
-  assert.equal(client.getServerVersion().version, '0.7.1');
+  assert.equal(client.getServerVersion().version, '0.8.0');
   const result = await client.callTool({ name: 'refine_prompt', arguments: { request: '하루 30분 영어 공부 계획 짜줘', execution_prompt: '영어 회화 실력을 위한 일주일 계획을 하루 30분으로 작성한다. 듣기·발화·복습 시간을 배분하고 각 날의 완료 기준을 포함한다.', constraints: ['일주일', '회화 중심'], intent: { goal: '영어 회화 실력을 위한', deliverable: '일주일 계획', success_criteria: ['하루 30분', '각 날의 완료 기준'] }, coverage: [{ section: 'constraints', index: 1, prompt_quote: '영어 회화 실력을 위한' }] } });
   assert.equal(result.structuredContent.source.request, '하루 30분 영어 공부 계획 짜줘');
   assert.deepEqual(result.structuredContent.source.constraints, ['일주일', '회화 중심']);

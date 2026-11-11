@@ -86,7 +86,7 @@ test('unjustified or repeated clarification is rejected, and prompt-only still n
 
 test('Worker publishes an input schema with required intent but optional defaults', async () => {
   const tools = (await rpc('tools/list', {})).result.tools;
-  assert.deepEqual(tools.map(tool => tool.name), ['refine_prompt']);
+  assert.deepEqual(tools.map(tool => tool.name), ['refine_prompt', 'check_result']);
   assert.deepEqual(tools[0].inputSchema.required, ['request', 'intent', 'execution_prompt']);
   const check = new Ajv({ strict: false }).compile(tools[0].inputSchema);
   assert.equal(check(valid), true);

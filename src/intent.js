@@ -67,7 +67,8 @@ export function assessIntent(input) {
   }
   // Never concatenate source fields: that could create a quote spanning two
   // unrelated inputs. These are caller-supplied sources, not authenticated history.
-  const sources = [input.request, input.context, ...(input.constraints ?? [])].filter(Boolean);
+  const prior = input.follow_up?.previous.source;
+  const sources = [input.request, input.context, ...(input.constraints ?? []), ...(input.inherited_sources ?? []), prior?.request, prior?.context, ...(prior?.constraints ?? []), ...(input.follow_up?.previous.inherited_sources ?? [])].filter(Boolean);
   for (const [index, fact] of intent.known_facts.entries()) {
     if (!sources.some((source) => contains(source, fact.source_quote))) issues.push({ code: 'ungrounded_fact_quote', section: 'known_facts', index });
   }
