@@ -26,7 +26,7 @@ export const intentSchema = z.object({
 });
 
 export const coverageSchema = z.array(z.object({
-  section: z.enum(['goal', 'deliverable', 'success_criteria', 'constraints', 'known_facts', 'assumptions']),
+  section: z.enum(['goal', 'deliverable', 'success_criteria', 'constraints', 'known_facts', 'assumptions', 'unknowns']),
   index: z.number().int().min(0).max(19).default(0).describe('Zero-based item index. Use 0 for goal and deliverable.'),
   prompt_quote: text(3000).describe('An actual execution_prompt substring expressing the item when paraphrased. The server checks the quote exists, not semantic equivalence.'),
 }).strict()).max(50).default([]);
@@ -39,6 +39,13 @@ export function assessIntent(input) {
     ...['success_criteria', 'constraints', 'known_facts', 'assumptions'].flatMap((section) => {
       const items = section === 'constraints' ? input.constraints ?? [] : intent[section];
       return items.map((item, index) => ({ section, index, text: section === 'known_facts' ? item.fact : item }));
+    }),
+    ...intent.unknowns.flatMap((unknown, index) => {
+      if (!unknown.answer_quote) return [];
+      // A quoted fact is an explicit host-authored link from the answer to its
+      // prompt wording. Otherwise require the answer itself or a coverage quote.
+      const linkedFact = intent.known_facts.find((fact) => normalize(fact.source_quote) === normalize(unknown.answer_quote));
+      return [{ section: 'unknowns', index, text: linkedFact?.fact ?? unknown.answer_quote }];
     }),
   ];
   const issues = [];

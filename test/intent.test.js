@@ -115,3 +115,17 @@ test('coding and research fixtures preserve explicit scope and uncertainty witho
   const research = buildBrief({ request: '경쟁사 분석해줘. 없는 수치를 만들지 마.', constraints: ['없는 수치를 만들지 마'], execution_prompt: '경쟁사 분석을 수행한다. 비교표와 시사점을 작성한다. 없는 수치를 만들지 마. 확인하지 못한 수치는 미확인으로 표시하고, 실제 확인한 출처만 제시한다.', intent: { goal: '경쟁사 분석', deliverable: '비교표와 시사점', success_criteria: ['실제 확인한 출처만 제시한다.'] } });
   assert.equal(research.quality_gate.status, 'passed');
 });
+
+
+test('a resolved answer must also reach the recorded prompt before execution', () => {
+  const args = { ...valid, context: '숙제는 주 2회로 해줘.', intent: { ...valid.intent, unknowns: [{ question: '숙제는 일주일에 몇 번 하나요?', why_it_matters: '학습 일정에 포함한다.', blocking: true, answer_quote: '숙제는 주 2회' }] } };
+  const omitted = buildBrief(args);
+  assert.equal(omitted.status, 'prompt_revision_required');
+  assert.equal(omitted.workflow.ready_for_host_execution, false);
+  assert.ok(omitted.quality_gate.issues.some(issue => issue.section === 'unknowns'));
+  const fixed = buildBrief({ ...args, execution_prompt: args.execution_prompt + ' 숙제는 주 2회로 한다.', revision: 2, previous_prompt_id: omitted.prompt_record.id });
+  assert.equal(fixed.quality_gate.status, 'passed');
+  assert.deepEqual(fixed.questions, []);
+  const paraphrased = buildBrief({ ...args, execution_prompt: args.execution_prompt + ' 주당 두 차례 숙제를 배정한다.', coverage: [{ section: 'unknowns', index: 0, prompt_quote: '주당 두 차례 숙제를 배정한다.' }] });
+  assert.equal(paraphrased.quality_gate.status, 'passed');
+});

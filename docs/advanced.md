@@ -249,9 +249,9 @@ Render의 `RENDER_EXTERNAL_HOSTNAME`은 자동으로 허용됩니다. 무료 인
 
 0.7부터 `request`, `intent`, `execution_prompt`가 필수입니다. 호스트 AI가 작성하며 사용자가 이 양식을 채울 필요는 없습니다. intent에는 `goal`, `deliverable`, 최소 1개의 `success_criteria`가 필요합니다. 선택 항목 `known_facts`의 fact와 source_quote는 전달된 요청·문맥·조건에 실제 인용이 있어야 합니다. `assumptions`는 명시적인 안전한 기본 선택입니다. `unknowns`에는 question·why_it_matters·blocking을 넣고, 이미 답이 있다면 실제 answer_quote를 연결합니다.
 
-목표·결과물·완료 기준·명시 조건·사실·가정의 각 항목이 실행 프롬프트에 들어 있는지 NFC/공백 정규화 후 확인합니다. 바꿔 쓴 항목은 `coverage: [{"section":"constraints","index":0,"prompt_quote":"실제 프롬프트 구절"}]`로 연결합니다. 인덱스는 0부터 시작하며 goal과 deliverable은 0입니다. section은 goal, deliverable, success_criteria, constraints, known_facts, assumptions를 지원합니다. 구절의 존재를 검사하며 의미가 같은지까지 판정하지는 않습니다.
+목표·결과물·완료 기준·명시 조건·사실·가정의 각 항목이 실행 프롬프트에 들어 있는지 NFC/공백 정규화 후 확인합니다. 바꿔 쓴 항목은 `coverage: [{"section":"constraints","index":0,"prompt_quote":"실제 프롬프트 구절"}]`로 연결합니다. 인덱스는 0부터 시작하며 goal과 deliverable은 0입니다. section은 goal, deliverable, success_criteria, constraints, known_facts, assumptions, unknowns(답변이 있는 항목)를 지원합니다. 구절의 존재를 검사하며 의미가 같은지까지 판정하지는 않습니다.
 
-조건 누락이나 잘못된 인용은 `prompt_revision_required`, `revision_required` 기록과 `ready_for_host_execution: false`를 반환합니다. AI가 사용자를 다시 조사하지 않고 자신의 누락을 보완한 뒤 연결된 개정으로 기록해야 합니다. 미해결 blocking 질문이 있으면 ready를 요청했어도 `clarification_required`를 반환합니다. 반환된 질문만 묻고, 실제 답이 인용된 질문은 해결된 것으로 처리합니다. 비필수 선호는 질문을 강제하지 않습니다. 어떤 정보가 중요하고 이미 알려졌는지는 호스트가 올바르게 구분해야 합니다.
+조건 누락이나 잘못된 인용은 `prompt_revision_required`, `revision_required` 기록과 `ready_for_host_execution: false`를 반환합니다. AI가 사용자를 다시 조사하지 않고 자신의 누락을 보완한 뒤 연결된 개정으로 기록해야 합니다. 미해결 blocking 질문이 있으면 ready를 요청했어도 `clarification_required`를 반환합니다. 반환된 질문만 묻고, 실제 답이 인용된 질문은 해결된 것으로 처리합니다. 그 답도 원문 그대로, 같은 source_quote로 연결된 사실, 또는 unknowns coverage 구절로 프롬프트에 반영되어야 하며 빠지면 문안 수정을 요청합니다. 비필수 선호는 질문을 강제하지 않습니다. 어떤 정보가 중요하고 이미 알려졌는지는 호스트가 올바르게 구분해야 합니다.
 
 통과한 execute는 `host_execution_required`, prompt_only는 `prompt_ready`이며 prompt_only에서는 원문만 반환합니다. `intent_record`, `coverage_record`, `quality_gate`와 함께 `prompt_record`에 정확한 원문·ID·개정·시각을 반환합니다. 요청한 상태와 판정 상태가 다르면 requested_state에 남깁니다. 답변이나 누락 보완 후 이전 ID와 증가한 revision으로 기록합니다. 서버는 과거 ID의 진위나 개정의 연속성까지 검증하지 않습니다.
 
