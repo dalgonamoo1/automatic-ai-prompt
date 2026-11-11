@@ -6,7 +6,7 @@ import { REFINE_TOOL } from './tool-definition.js';
 // No conversations, identities, credentials, or request bodies are stored here.
 const MAX_BODY_BYTES = 128 * 1024;
 const VERSIONS = ['2026-07-28', '2025-11-25', '2025-06-18', '2025-03-26'];
-const SERVER = { name: 'intent-bridge', version: '0.7.0' };
+const SERVER = { name: 'intent-bridge', version: '0.7.1' };
 const TOOL = {
   name: 'refine_prompt',
   ...REFINE_TOOL,

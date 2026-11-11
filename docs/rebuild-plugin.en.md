@@ -1,4 +1,4 @@
-# Recreate the ChatGPT plugin · 0.7.0
+# Recreate the ChatGPT plugin · 0.7.1
 
 [한국어](rebuild-plugin.md)
 
@@ -9,7 +9,7 @@ Keep the complete repository as a ZIP to redeploy this version later. The ZIP co
 Attach the source ZIP and use this request:
 
 ```text
-Recreate the ChatGPT MCP plugin from the attached Automatic AI Prompt 0.7.0 source.
+Recreate the ChatGPT MCP plugin from the attached Automatic AI Prompt 0.7.1 source.
 
 Preserve its behavior and tests. Build src/chatgpt-worker.js with scripts/build-chatgpt.mjs. For an existing deployment, preserve that Site's ID and audience. For a new deployment, create a private Site in my account and use its actual returned project_id with capabilities: ["mcp"]. Do not copy another account's Site or plugin IDs.
 

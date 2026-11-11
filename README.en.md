@@ -40,7 +40,9 @@ Automatic use requires **the tool to be available in the current chat and the AI
 
 ### Can I see the prompt that was actually used?
 
-Ask "Show the first prompt you used" or "Show the prompt after my clarification answers". The AI is instructed to quote the **exact document and revision** from the corresponding tool result, rather than present a newly written reconstruction as the original.
+After task A, **“show me the prompt”** normally means quote **the exact prompt and revision that clarified A**. It does not automatically request a new development prompt or an unrelated latest test/tool record.
+
+You can specify the first version or the one after clarification. “Final prompt” and developer-handoff wording are interpreted in full context; the AI creates a new document only when that intent is clear. If the task or version is ambiguous, it should ask which prompt you mean before quoting or generating.
 
 The document lives in the **MCP call and response history**; this server does not store conversations permanently. If the record is no longer available in the conversation, the AI must say it cannot retrieve it. The server validates that text exists and meets the input format, but cannot guarantee its semantic quality or that the AI followed it.
 

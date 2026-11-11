@@ -1,4 +1,4 @@
-# ChatGPT 플러그인 다시 만들기 · 0.7.0
+# ChatGPT 플러그인 다시 만들기 · 0.7.1
 
 [English](rebuild-plugin.en.md)
 
@@ -9,7 +9,7 @@
 전체 소스 ZIP을 첨부하고 아래 문장을 함께 전달하세요.
 
 ```text
-첨부한 Automatic AI Prompt 0.7.0 소스로 ChatGPT용 MCP 플러그인을 다시 만들어줘.
+첨부한 Automatic AI Prompt 0.7.1 소스로 ChatGPT용 MCP 플러그인을 다시 만들어줘.
 
 기존 동작과 테스트를 유지하고 src/chatgpt-worker.js를 scripts/build-chatgpt.mjs로 빌드해 줘. 기존 배포를 갱신한다면 그 Site의 ID와 공개 범위를 유지하고, 새 배포라면 내 계정에 새 비공개 Site를 만들어 실제 반환받은 project_id와 capabilities: ["mcp"]를 사용해 줘. 다른 사람의 Site ID나 플러그인 ID를 복사하지 마.
 
