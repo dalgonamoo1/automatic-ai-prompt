@@ -1,31 +1,17 @@
 import { z } from 'zod';
 import { buildBrief, refineSchema, HOST_INSTRUCTIONS } from './prompt.js';
-import { REFINE_TOOL, PLAN_TOOL, REVIEW_TOOL } from './tool-definition.js';
-import { buildPlan, buildReview, planSchema, reviewSchema } from './workflow.js';
+import { REFINE_TOOL } from './tool-definition.js';
 
 // Sites enforces sign-in and Site access before forwarding /mcp requests.
 // No conversations, identities, credentials, or request bodies are stored here.
 const MAX_BODY_BYTES = 128 * 1024;
 const VERSIONS = ['2026-07-28', '2025-11-25', '2025-06-18', '2025-03-26'];
-const SERVER = { name: 'intent-bridge', version: '0.6.0' };
+const SERVER = { name: 'intent-bridge', version: '0.5.0' };
 const TOOL = {
   name: 'refine_prompt',
   ...REFINE_TOOL,
   inputSchema: z.toJSONSchema(refineSchema, { target: 'draft-7' }),
   _meta: { 'openai/toolInvocation/invoking': '실행 프롬프트 기록 중', 'openai/toolInvocation/invoked': '실행 프롬프트 기록 완료' },
-};
-
-const PLAN = {
-  name: 'plan_task',
-  ...PLAN_TOOL,
-  inputSchema: z.toJSONSchema(planSchema, { target: 'draft-7' }),
-  _meta: { 'openai/toolInvocation/invoking': '작업 계획 기록 중', 'openai/toolInvocation/invoked': '작업 계획 기록 완료' },
-};
-const REVIEW = {
-  name: 'review_result',
-  ...REVIEW_TOOL,
-  inputSchema: z.toJSONSchema(reviewSchema, { target: 'draft-7' }),
-  _meta: { 'openai/toolInvocation/invoking': '결과 검토 기록 중', 'openai/toolInvocation/invoked': '결과 검토 기록 완료' },
 };
 
 function json(value, status = 200, headers = {}) {
@@ -80,18 +66,13 @@ export async function handleMcp(request) {
     case 'initialize':
       return result({ protocolVersion: VERSIONS.includes(params.protocolVersion) ? params.protocolVersion : '2025-11-25', serverInfo: SERVER, capabilities: { tools: {} }, instructions: HOST_INSTRUCTIONS });
     case 'ping': return result({});
-    case 'tools/list': return result({ tools: [TOOL, PLAN, REVIEW] });
+    case 'tools/list': return result({ tools: [TOOL] });
     case 'tools/call': {
-      const contract = {
-        refine_prompt: [refineSchema, buildBrief],
-        plan_task: [planSchema, buildPlan],
-        review_result: [reviewSchema, buildReview],
-      }[params.name];
-      if (!contract) return error(id, -32602, 'Unknown tool.');
-      const parsed = contract[0].safeParse(params.arguments);
-      if (!parsed.success) return result({ isError: true, content: [{ type: 'text', text: 'Invalid tool arguments. Check required fields, evidence constraints, and approval rules.' }] });
-      const record = contract[1](parsed.data);
-      return result({ content: [{ type: 'text', text: JSON.stringify(record, null, 2) }], structuredContent: record });
+      if (params.name !== 'refine_prompt') return error(id, -32602, 'Unknown tool.');
+      const parsed = refineSchema.safeParse(params.arguments);
+      if (!parsed.success) return result({ isError: true, content: [{ type: 'text', text: 'Invalid tool arguments. Provide request and a nonempty task-specific execution_prompt. needs_clarification requires questions; revisions require previous_prompt_id.' }] });
+      const brief = buildBrief(parsed.data);
+      return result({ content: [{ type: 'text', text: JSON.stringify(brief, null, 2) }], structuredContent: brief });
     }
     default: return error(id, -32601, 'Method not found.');
   }
